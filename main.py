@@ -2,6 +2,7 @@
 import xmpp
 import sys
 import os
+import re
 import signal
 import time
 import threading
@@ -68,11 +69,40 @@ def main():
     incoming_thread.setDaemon(True)
     incoming_thread.start()
 
+    to_jid = '' #jid for the user receiving the message
     while True:
         out_message = raw_input()
-        message = xmpp.Message("sum19504585@pvp.net", out_message)
-        message.setAttr('type', 'chat')
-        cl.send(message)
+        out_message = re.split('(/\w+) (\w+)', out_message)
+        try:
+            if out_message[1] == '/w':
+                to_jid = out_message[2]
+                out_message = out_message[3]
+        except IndexError:
+            try:
+                if out_message[0] != '':
+                    out_message = out_message[0]
+                else:
+                    out_message = ''
+                    to_jid = None
+            except IndexError:
+                out_message = ''
+                to_jid = None
+
+        if to_jid:
+            roster = cl.getRoster()
+            roster_list = roster.getItems()
+            for user in alive_users:
+                if roster.getName(user) == to_jid:
+                    to_jid = user
+                    valid_jid = True
+                else:
+                    valid_jid = False
+            if valid_jid:
+                message = xmpp.Message(to_jid, out_message)
+                message.setAttr('type', 'chat')
+                cl.send(message)
+            else:
+                print "User not found..."
 
 if __name__ == '__main__': 
     try:
