@@ -5,3 +5,6 @@ Intelligently interact with the League of Legends jaber network to send/receive 
 
 Usage:
     python main.py username password
+
+Requirements:
+    xmpppy
