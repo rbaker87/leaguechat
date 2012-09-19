@@ -30,7 +30,7 @@ def main():
         cl.RegisterHandler('presence', incoming_thread.presenceCB)
         cl.RegisterHandler('message', incoming_thread.messageCB)
 
-        to_jid = '' #jid for the user receiving the message
+        to_jid = None #jid for the user receiving the message
         time.sleep(2.1) #Extremely inelegant solution to making the first prompt appear after the friends list populates. Fix later
         while True:
             out_message = raw_input()
@@ -45,7 +45,10 @@ def main():
                 try:
                     if out_message[0] != '':
                         out_message = out_message[0]
-                        to_jid = roster.getName(to_jid)
+                        try:
+                            to_jid = roster.getName(to_jid)
+                        except (KeyError, TypeError):
+                            to_jid = None
                     else:
                         out_message = ''
                         to_jid = None
@@ -55,7 +58,7 @@ def main():
 
             if to_jid:
                 for user in incoming_thread.alive_users:
-                    if roster.getName(user).lower() == to_jid.lower():
+                    if str(roster.getName(user)).lower() == str(to_jid).lower():
                         to_jid = user
                         valid_jid = True
                         break
