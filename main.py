@@ -4,22 +4,29 @@ import sys
 import re
 import time
 from chatutils import CheckMessages
+from messages import *
+from beanstalk import serverconn
 
 try:
     username = sys.argv[1]
     passwd = 'AIR_%s' % sys.argv[2]
     out_message = ''
+    beanserv = serverconn.ServerConn('localhost', 55833)
 except IndexError:
+    beanserv.use('errors')
+    beanserv.put(LOGIN_ERROR)
     sys.exit("\nEnter a username and password\n")
 
 def main():
     cl = xmpp.Client('pvp.net', debug=[])
     if cl.connect(server=('chat.na1.lol.riotgames.com',5223)) == "":
-        sys.stderr.write("Not connected\n")
-        sys.exit(0)
+        beanserv.use('errors')
+        beanserv.put(CONN_ERROR)
+        sys.exit("Not connected\n")
     if cl.auth(username,passwd,"xiff") == None:
-        sys.stderr.write("Authentication failed\n")
-        sys.exit(0)
+        beanserv.use('errors')
+        beanserv.put(AUTH_ERROR)
+        sys.exit("Authentication failed\n")
     if cl.isConnected():
         cl.sendInitPresence(requestRoster=1)
 
@@ -69,9 +76,13 @@ def main():
                     message.setAttr('type', 'chat')
                     cl.send(message)
                 else:
+                    beanserv.use('warnings')
+                    beanserv.put(USER_WARNING)
                     sys.stderr.write("User not found...\n")
     else:
-        sys.stderr.write("Error connecting to server...\n")
+        beanserv.use('errors')
+        beanserv.put(CONN_ERROR)
+        sys.exit("Error connecting to server...\n")
 
 if __name__ == '__main__': 
     try:
