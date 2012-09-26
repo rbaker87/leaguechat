@@ -91,27 +91,16 @@ def web_socket_transfer_data(request):
                 line = request.ws_stream.receive_message()
                 out_message = str(line)
                 if out_message != "Keep alive":
-                    out_message = re.split('(/\w+) (\w+)', out_message)
+                    split_out = out_message.split()
                     roster = cl.getRoster()
                     roster_list = roster.getItems()
                     try:
-                        if out_message[1] == '/w':
-                            to_jid = out_message[2]
-                            out_message = out_message[3]
+                        if split_out[0] == '#:#outmessage#:#':
+                            to_jid = split_out[1][3:-3]
+                            out_message = ' '.join(split_out[2:])
                     except IndexError:
-                        try:
-                            if out_message[0] != '':
-                                out_message = out_message[0]
-                                try:
-                                    to_jid = roster.getName(to_jid)
-                                except (KeyError, TypeError):
-                                    to_jid = None
-                            else:
-                                out_message = ''
-                                to_jid = None
-                        except IndexError:
-                            out_message = ''
-                            to_jid = None
+                        to_jid = None
+                        out_message = ''
 
                     if to_jid:
                         for user in incoming_thread.alive_users:
@@ -131,4 +120,3 @@ def web_socket_transfer_data(request):
             request.ws_stream.send_message(CONN_ERROR, binary=False)
     except IOError: #Something was causing apache to overload... Meh?
         return
-# vi:sts=4 sw=4 et
