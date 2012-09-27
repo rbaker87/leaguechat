@@ -60,7 +60,7 @@
         });
 
         function addToLog(log) {
-          logBox.value += log + '\n';
+          logBox.innerHTML += log + '<br>';
           logBox.scrollTop = 1000000;
         }
 
@@ -198,7 +198,7 @@
         <div class="onecol">
         </div>
         <div class="fivecol">
-            <textarea id="log" rows="15" cols="50" readonly></textarea>
+            <div id="log"></div>
         </div>
         <div class="fourcol">
             <div id="friend_header">Friends List</div>

@@ -21,6 +21,13 @@
         position: relative;
     }
 
+    #log {
+        width: 400px;
+        height: 300px;
+        border: 1px solid #000;
+        overflow: auto;
+    }
+
     .friendentry {
         margin-top: 2px;
         background-color: #eee;
