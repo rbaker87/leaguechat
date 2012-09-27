@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<title>PyLoL</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	
+	<!--[if lte IE 9]><link rel="stylesheet" href="/media/css/ie.css" type="text/css" media="screen" /><![endif]-->
+	<link rel="stylesheet" href="/media/css/1140.css" type="text/css" media="screen" />
+	<link rel="stylesheet" href="/media/css/styles.css" type="text/css" media="screen" />
+	
+	<!--css3-mediaqueries-js - http://code.google.com/p/css3-mediaqueries-js/ - Enables media queries in some unsupported browsers-->
+	<script type="text/javascript" src="/media/js/css3-mediaqueries.js"></script>
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+
+    <script>
+        var socket = null;
+
+        var showTimeStamp = false;
+        var addressWs = "ws://pylol.com/leaguechat";
+
+        var logBox = null;
+        var friendBox = null;
+        var messageBox = null;
+        var userBox = null;
+        var passBox = null;
+        var activeFriend = null;
+        var intervalID = null;
+        var newMessages = 0;
+        var pageTitle = 'PyLoL';
+        var windowFocused = new Boolean(true);
+
+        function playSound(soundfile) {
+            document.getElementById("dummy").innerHTML="<embed src=\""+soundfile+"\" hidden=\"true\" autostart=\"true\" loop=\"false\" />";
+        }
+
+        function keepAlive() {
+            socket.send("Keep alive");            
+        }
+
+        function getElementsByClassName(classname, node) {
+            if(!node) node = document.getElementsByTagName("body")[0];
+            var a = [];
+            var re = new RegExp('\\b' + classname + '\\b');
+            var els = node.getElementsByTagName("*");
+            for(var i=0,j=els.length; i<j; i++)
+                if(re.test(els[i].className))a.push(els[i]);
+            return a;
+        }
+
+        $(window).focus(function() {
+            document.title = pageTitle;
+            newMessages = 0;
+            windowFocused = true;
+        });
+        $(window).blur(function() {
+            windowFocused = false;
+        });
+
+        function getTimeStamp() {
+          return new Date().getTime();
+        }
+
+        function addToLog(log) {
+          if (showTimeStamp) {
+            logBox.value += '[' + getTimeStamp() + '] ';
+          }
+          logBox.value += log + '\n';
+          logBox.scrollTop = 1000000;
+        }
+
+        function setActiveFriend(friend) {
+            activeFriend = friend;
+            var elements = new Array();
+            elements = getElementsByClassName('friendentry');
+            for(i in elements) {
+                elements[i].style.backgroundColor = '#eee';
+            }
+            document.getElementById(friend).style.backgroundColor = '#ccc';
+        }
+
+        function updateFriends(log) {
+          friendBox.innerHTML += "<div class='friendentry' id='"+log+"' onclick='setActiveFriend(\""+log+"\");'>" + log + '</div>';
+        }
+
+        function clearFriends() {
+          friendBox.innerHTML = '';
+        }
+
+        function send() {
+          if (!socket) {
+            addToLog('Not connected');
+            return;
+          }
+
+          socket.send("#:#outmessage#:# #:#" + activeFriend + "#:# " + messageBox.value);
+          addToLog(userBox.value + ': ' + messageBox.value);
+          messageBox.value = '';
+        }
+
+        function connect() {
+          if ('WebSocket' in window) {
+            socket = new WebSocket(addressWs);
+          } else if ('MozWebSocket' in window) {
+            socket = new MozWebSocket(addressWs);
+          } else {
+            return;
+          }
+
+          socket.onopen = function () {
+            socket.binaryType = 'blob';
+            addToLog('Connected...\nWaiting for friends list to populate...');
+            socket.send('username' + userBox.value);
+            socket.send('password' + passBox.value);
+            intervalID = window.setInterval(keepAlive, 10000);
+          };
+          socket.onmessage = function (event) {
+            if (event.data.indexOf("#:#clearfriends#:#") != -1) {
+                clearFriends();
+            }
+            if (event.data.indexOf("#:#message#:#") != -1) {
+                if (activeFriend == null) {
+                    setActiveFriend(event.data.slice(13,event.data.indexOf(':', 13)))
+                }
+                addToLog(event.data.slice(13));
+                playSound('./media/pm_receive.mp3');
+                if (windowFocused == false) {
+                    newMessages += 1;
+                    document.title = pageTitle + ' (' + newMessages + ')';
+                }
+            }
+            if (event.data.indexOf("#:#friendupdate#:#") != -1) {
+                updateFriends(event.data.slice(18));
+            }
+          };
+          socket.onerror = function () {
+            addToLog('Error');
+          };
+          socket.onclose = function (event) {
+            addToLog('Session closed...');
+          };
+        }
+
+        function closeSocket() {
+          if (!socket) {
+            addToLog('Not connected');
+            return;
+          }
+
+          if (codeBox.value || reasonBox.value) {
+            socket.close(codeBox.value, reasonBox.value);
+          } else {
+            socket.close();
+          }
+        }
+
+        function init() {
+          var scheme = window.location.protocol == 'https:' ? 'wss://' : 'ws://';
+          var defaultAddress = scheme + window.location.host + '/leaguechat';
+
+          logBox = document.getElementById('log');
+          friendBox = document.getElementById('friends');
+          messageBox = document.getElementById('message');
+          userBox = document.getElementById('username');
+          passBox = document.getElementById('password');
+
+          addressWs = defaultAddress;
+
+          if ('MozWebSocket' in window) {
+            addToLog('Use MozWebSocket');
+          } else if (!('WebSocket' in window)) {
+            addToLog('WebSocket is not available');
+          }
+        }
+    </script>
+</head>
+
+<body onload="init()">
+
+<div class="container">
+	<div class="row" style="background-color: #ccc; border-bottom: 1px solid #000; border-left: 1px solid #000; border-right: 1px solid #000;">
+		<div class="onecol">
+        </div>
+        <div class="ninecol">
+            <div class="align-right">
+                <form action="#" onsubmit="connect(); return false;">
+                    Username: <input type="text" id="username" size="15">
+                    Password: <input type="password" id="password" size="15">
+                    <input type="submit" value="Log In">
+                </form>
+            </div>
+        </div>
+        <div class="twocol last">
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="onecol">
+        </div>
+        <div class="fivecol">
+            <textarea id="log" rows="15" cols="50" readonly></textarea>
+        </div>
+        <div class="fourcol">
+            <div id="friend_header">Friends List</div>
+            <div id="friends"></div>
+        </div>
+        <div class="twocol last">
+        </div>
+    </div>
+    <div class="row">
+        <div class="onecol">
+        </div>
+        <div class="ninecol">
+            <form action="#" onsubmit="send(); return false;">
+                <input type="text" id="message" class="focusReset" size="40">
+                <input type="submit" class="focusReset" value="send">
+            </form>
+        </div>
+        <div class="twocol last">
+        </div>
+    </div>
+    <span id="dummy"></span>
+</div>
+
+
+
+
+
+</body>
+</html>
