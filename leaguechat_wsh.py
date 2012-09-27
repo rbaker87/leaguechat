@@ -11,7 +11,6 @@ class CheckMessages(threading.Thread):
         self.conn = conn
         self.user_length = 0
         self.alive_users = []
-        self.first_run = True
         self.message_sender = message_sender
 
     def presenceCB(self,conn,msg):
@@ -32,10 +31,6 @@ class CheckMessages(threading.Thread):
     def StepOn(self):
         try:
             self.conn.Process(1)
-            if self.first_run:
-                #Give the roster some time to populate correctly. Need a more elegant solution to this
-                time.sleep(2) 
-                self.first_run = False
             roster = self.conn.getRoster()
             roster_list = roster.getItems()
 
@@ -85,8 +80,8 @@ def web_socket_transfer_data(request):
             cl.RegisterHandler('presence', incoming_thread.presenceCB)
             cl.RegisterHandler('message', incoming_thread.messageCB)
 
+            request.ws_stream.send_message(CONN_SUCCESS, binary=False)
             to_jid = None #jid for the user receiving the message
-            time.sleep(2.1) #Extremely inelegant solution to making the first prompt appear after the friends list populates. Fix later
             while True:
                 line = request.ws_stream.receive_message()
                 out_message = str(line)

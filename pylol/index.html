@@ -59,14 +59,7 @@
             windowFocused = false;
         });
 
-        function getTimeStamp() {
-          return new Date().getTime();
-        }
-
         function addToLog(log) {
-          if (showTimeStamp) {
-            logBox.value += '[' + getTimeStamp() + '] ';
-          }
           logBox.value += log + '\n';
           logBox.scrollTop = 1000000;
         }
@@ -111,7 +104,6 @@
 
           socket.onopen = function () {
             socket.binaryType = 'blob';
-            addToLog('Connected...\nWaiting for friends list to populate...');
             socket.send('username' + userBox.value);
             socket.send('password' + passBox.value);
             intervalID = window.setInterval(keepAlive, 10000);
@@ -119,6 +111,12 @@
           socket.onmessage = function (event) {
             if (event.data.indexOf("#:#clearfriends#:#") != -1) {
                 clearFriends();
+            }
+            if (event.data.indexOf("#:#error#:#") != -1) {
+                addToLog(event.data.slice(11));
+            }
+            if (event.data.indexOf("#:#warning#:#") != -1) {
+                addToLog(event.data.slice(13));
             }
             if (event.data.indexOf("#:#message#:#") != -1) {
                 if (activeFriend == null) {

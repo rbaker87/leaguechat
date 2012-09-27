@@ -17,6 +17,10 @@
         border: 1px solid #000;
     }
 
+    #logholder {
+        position: relative;
+    }
+
     .friendentry {
         margin-top: 2px;
         background-color: #eee;
