@@ -10,6 +10,8 @@ html,body,div,span,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,addre
 .container {
 padding-left: 20px;
 padding-right: 20px;
+padding-bottom: 110px;
+min-height: 100%;
 }
 
 .row {

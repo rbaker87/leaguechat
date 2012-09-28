@@ -13,7 +13,8 @@
 	
 	<!--css3-mediaqueries-js - http://code.google.com/p/css3-mediaqueries-js/ - Enables media queries in some unsupported browsers-->
 	<script type="text/javascript" src="/media/js/css3-mediaqueries.js"></script>
-    <script src="http://code.jquery.com/jquery-latest.js"></script>
+	<script type="text/javascript" src="/media/js/fader.js"></script>
+    <script src="/media/js/jquery.js"></script>
 
     <script>
         var socket = null;
@@ -23,6 +24,9 @@
 
         var logBox = null;
         var friendBox = null;
+        var friendRequestBox = null;
+        var gameBox = null;
+        var chatBox = null;
         var messageBox = null;
         var userBox = null;
         var passBox = null;
@@ -37,7 +41,7 @@
         }
 
         function keepAlive() {
-            socket.send("Keep alive");            
+            socket.send("Keep alive");
         }
 
         function getElementsByClassName(classname, node) {
@@ -64,7 +68,29 @@
           logBox.scrollTop = 1000000;
         }
 
+        function addToFriendLog(log) {
+          friendRequestBox.innerHTML += log + '<br>';
+          friendRequestBox.scrollTop = 1000000;
+        }
+
+        function addToGameLog(log) {
+          gameBox.innerHTML += log + '<br>';
+          gameBox.scrollTop = 1000000;
+        }
+
+        function addToChat(log, friend) {
+          chatBox = document.getElementById(friend+'_chat');
+          chatBox.innerHTML += log + '<br>';
+          chatBox.scrollTop = 1000000;
+        }
+
         function setActiveFriend(friend) {
+            if (activeFriend != null) {
+                document.getElementById(activeFriend+'_chat').style.display = 'none';
+                if (document.getElementById(friend).style.backgroundColor != 'rgb(238, 238, 238)') {
+                    colorFade(friend, 'background', '00ccee', 'eeeeee', 25, 30);
+                }
+            }
             activeFriend = friend;
             var elements = new Array();
             elements = getElementsByClassName('friendentry');
@@ -72,6 +98,12 @@
                 elements[i].style.backgroundColor = '#eee';
             }
             document.getElementById(friend).style.backgroundColor = '#ccc';
+            document.getElementById('active_friendheader').innerHTML = friend;
+            if (document.getElementById(friend+'_chat') == null) {
+                document.getElementById('friendholder').innerHTML += "<div id='"+friend+"_chat' class='chatwindow'></div>"; 
+            }
+            document.getElementById(friend+'_chat').style.display = 'block';
+            chatBox = document.getElementById(friend+'_chat');
         }
 
         function updateFriends(log) {
@@ -89,7 +121,7 @@
           }
 
           socket.send("#:#outmessage#:# #:#" + activeFriend + "#:# " + messageBox.value);
-          addToLog(userBox.value + ': ' + messageBox.value);
+          addToChat(userBox.value + ': ' + messageBox.value, activeFriend);
           messageBox.value = '';
         }
 
@@ -122,8 +154,17 @@
                 if (activeFriend == null) {
                     setActiveFriend(event.data.slice(13,event.data.indexOf(':', 13)))
                 }
-                addToLog(event.data.slice(13));
+                friend = event.data.slice(13,event.data.indexOf(':', 13));
+                if (document.getElementById(friend+'_chat') == null) {
+                    document.getElementById('friendholder').innerHTML += "<div id='"+friend+"_chat' class='chatwindow'></div>"; 
+                    document.getElementById(friend+'_chat').style.display = 'none';
+                }
+
+                addToChat(event.data.slice(13), friend);
                 playSound('./media/pm_receive.mp3');
+                if (activeFriend != friend) {
+                    colorFade(friend, 'background', 'eeeeee', '00ccee', 25, 30);
+                }
                 if (windowFocused == false) {
                     newMessages += 1;
                     document.title = pageTitle + ' (' + newMessages + ')';
@@ -138,6 +179,7 @@
           };
           socket.onclose = function (event) {
             addToLog('Session closed...');
+            clearFriends();
           };
         }
 
@@ -160,6 +202,8 @@
 
           logBox = document.getElementById('log');
           friendBox = document.getElementById('friends');
+          friendRequestBox = document.getElementById('friendrequests');
+          gameBox = document.getElementById('gameinvites');
           messageBox = document.getElementById('message');
           userBox = document.getElementById('username');
           passBox = document.getElementById('password');
@@ -184,8 +228,8 @@
         <div class="ninecol">
             <div class="align-right">
                 <form action="#" onsubmit="connect(); return false;">
-                    Username: <input type="text" id="username" size="15">
-                    Password: <input type="password" id="password" size="15">
+                    Username: <input type="text" id="username" size="15" autocapitalize="off" autocomplete="off" autocorrect="off">
+                    Password: <input type="password" id="password" size="15" autocapitalize="off" autocomplete="off" autocorrect="off">
                     <input type="submit" value="Log In">
                 </form>
             </div>
@@ -198,7 +242,9 @@
         <div class="onecol">
         </div>
         <div class="fivecol">
-            <div id="log"></div>
+            <div id="active_friendheader"></div>
+            <div id="friendholder">
+            </div>
         </div>
         <div class="fourcol">
             <div id="friend_header">Friends List</div>
@@ -208,23 +254,35 @@
         </div>
     </div>
     <div class="row">
-        <div class="onecol">
+        <div class="pad_areabottom">
+            <div class="floattobottom">
+                <div class="ninecol">
+                    <form action="#" onsubmit="send(); return false;">
+                        <input type="text" id="message" class="chatInput" autocomplete="off">
+                        <input type="submit" class="sendButton" value="SEND">
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="ninecol">
-            <form action="#" onsubmit="send(); return false;">
-                <input type="text" id="message" class="focusReset" size="40">
-                <input type="submit" class="focusReset" value="send">
-            </form>
+        <div class="threecol last">
         </div>
-        <div class="twocol last">
+    </div>
+    <div class="row">
+        <div class="fourcol">
+            <div class="eventheader">Console Log</div>
+            <div id="log"></div>
+        </div>
+        <div class="fourcol"> 
+            <div class="eventheader">Friend Requests</div>
+            <div id="friendrequests"></div>
+        </div>
+        <div class="fourcol last">
+            <div class="eventheader">Game Invites</div>
+            <div id="gameinvites"></div>
         </div>
     </div>
     <span id="dummy"></span>
 </div>
-
-
-
-
 
 </body>
 </html>
