@@ -87,9 +87,9 @@
         function setActiveFriend(friend) {
             if (activeFriend != null) {
                 document.getElementById(activeFriend+'_chat').style.display = 'none';
-                if (document.getElementById(friend).style.backgroundColor != 'rgb(238, 238, 238)') {
-                    colorFade(friend, 'background', '00ccee', 'eeeeee', 25, 30);
-                }
+            }
+            if ((document.getElementById(friend).style.backgroundColor != 'rgb(238, 238, 238)') && (document.getElementById(friend).style.backgroundColor != 'rgb(204, 204, 204)') && (document.getElementById(friend).style.backgroundColor != '')){
+                colorFade(friend, 'background', '00ccee', 'cccccc', 25, 30);
             }
             activeFriend = friend;
             var elements = new Array();
@@ -179,21 +179,19 @@
           };
           socket.onclose = function (event) {
             addToLog('Session closed...');
+            socket.send("Kill session");
             clearFriends();
           };
         }
 
-        function closeSocket() {
-          if (!socket) {
-            addToLog('Not connected');
-            return;
-          }
-
-          if (codeBox.value || reasonBox.value) {
-            socket.close(codeBox.value, reasonBox.value);
-          } else {
+        window.onbeforeunload = function () {
+            socket.send("Kill session");
             socket.close();
-          }
+        }
+
+        function logout() {
+            socket.send("Kill session");
+            socket.close();
         }
 
         function init() {
@@ -222,15 +220,17 @@
 <body onload="init()">
 
 <div class="container">
+    <div class="outerbox">
 	<div class="row" style="background-color: #ccc; border-bottom: 1px solid #000; border-left: 1px solid #000; border-right: 1px solid #000;">
-		<div class="onecol">
-        </div>
-        <div class="ninecol">
+        <div class="tencol">
             <div class="align-right">
-                <form action="#" onsubmit="connect(); return false;">
+                <form class="inlineform" action="#" onsubmit="connect(); return false;">
                     Username: <input type="text" id="username" size="15" autocapitalize="off" autocomplete="off" autocorrect="off">
                     Password: <input type="password" id="password" size="15" autocapitalize="off" autocomplete="off" autocorrect="off">
                     <input type="submit" value="Log In">
+                </form>
+                <form class="inlineform" action="#" onsubmit="logout(); return false;">
+                    <input type="submit" value="Log Out">
                 </form>
             </div>
         </div>
@@ -280,6 +280,7 @@
             <div class="eventheader">Game Invites</div>
             <div id="gameinvites"></div>
         </div>
+    </div>
     </div>
     <span id="dummy"></span>
 </div>

@@ -85,7 +85,7 @@ def web_socket_transfer_data(request):
             while True:
                 line = request.ws_stream.receive_message()
                 out_message = str(line)
-                if out_message != "Keep alive":
+                if ((out_message != "Keep alive") and (out_message != "Kill session")):
                     split_out = out_message.split()
                     roster = cl.getRoster()
                     roster_list = roster.getItems()
@@ -111,6 +111,9 @@ def web_socket_transfer_data(request):
                             cl.send(message)
                         else:
                             request.ws_stream.send_message(USER_WARNING, binary=False)
+                if (out_message == "Kill session"):
+                    cl.disconnect()
+                    return
         else:
             request.ws_stream.send_message(CONN_ERROR, binary=False)
     except IOError: #Something was causing apache to overload... Meh?
