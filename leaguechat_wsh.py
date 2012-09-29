@@ -66,8 +66,10 @@ def web_socket_transfer_data(request):
         cl = xmpp.Client('pvp.net', debug=[])
         if cl.connect(server=('chat.na1.lol.riotgames.com',5223)) == "":
             request.ws_stream.send_message(CONN_ERROR, binary=False)
+            return
         if cl.auth(username,passwd,"xiff") == None:
             request.ws_stream.send_message(AUTH_ERROR, binary=False)
+            return
         if cl.isConnected():
             cl.sendInitPresence(requestRoster=1)
 
