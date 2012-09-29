@@ -29,19 +29,23 @@ class CheckMessages(threading.Thread):
         self.message_sender.send_nowait("#:#message#:#%s: %s" % (str(received_from), str(msg.getBody())))
 
     def StepOn(self):
-        try:
-            self.conn.Process(1)
-            roster = self.conn.getRoster()
-            roster_list = roster.getItems()
+        if self.conn.isConnected():
+            try:
+                self.conn.Process(1)
+                roster = self.conn.getRoster()
+                roster_list = roster.getItems()
 
-            if self.user_length != len(self.alive_users):
-                self.message_sender.send_nowait("#:#clearfriends#:#")
-                for user in self.alive_users:
-                    if roster.getName(user) != None:
-                        self.message_sender.send_nowait("#:#friendupdate#:#%s" % roster.getName(user))
-            self.user_length = len(self.alive_users)
-
-        except KeyboardInterrupt:
+                if self.user_length != len(self.alive_users):
+                    self.message_sender.send_nowait("#:#clearfriends#:#")
+                    for user in self.alive_users:
+                        if roster.getName(user) != None:
+                            self.message_sender.send_nowait("#:#friendupdate#:#%s" % roster.getName(user))
+                self.user_length = len(self.alive_users)
+            except:
+                self.message_sender.send_nowait(CONN_ERROR)
+                return 0
+        else:
+            self.message_sender.send_nowait(CONN_ERROR)
             return 0
         return 1
 
@@ -86,37 +90,42 @@ def web_socket_transfer_data(request):
             to_jid = None #jid for the user receiving the message
             while True:
                 line = request.ws_stream.receive_message()
-                out_message = str(line)
-                if ((out_message != "Keep alive") and (out_message != "Kill session")):
-                    split_out = out_message.split()
-                    roster = cl.getRoster()
-                    roster_list = roster.getItems()
-                    try:
-                        if split_out[0] == '#:#outmessage#:#':
-                            to_jid = split_out[1][3:-3]
-                            out_message = ' '.join(split_out[2:])
-                    except IndexError:
-                        to_jid = None
-                        out_message = ''
+                if cl.isConnected():    #Check connection on each loop
+                    out_message = str(line)
+                    if ((out_message != "Keep alive") and (out_message != "Kill session")):
+                        split_out = out_message.split()
+                        roster = cl.getRoster()
+                        roster_list = roster.getItems()
+                        try:
+                            if split_out[0] == '#:#outmessage#:#':
+                                to_jid = split_out[1][3:-3]
+                                out_message = ' '.join(split_out[2:])
+                        except IndexError:
+                            to_jid = None
+                            out_message = ''
 
-                    if to_jid:
-                        for user in incoming_thread.alive_users:
-                            if str(roster.getName(user)).lower() == str(to_jid).lower():
-                                to_jid = user
-                                valid_jid = True
-                                break
+                        if to_jid:
+                            for user in incoming_thread.alive_users:
+                                if str(roster.getName(user)).lower() == str(to_jid).lower():
+                                    to_jid = user
+                                    valid_jid = True
+                                    break
+                                else:
+                                    valid_jid = False
+                            if valid_jid:
+                                message = xmpp.Message(to_jid, out_message)
+                                message.setAttr('type', 'chat')
+                                cl.send(message)
                             else:
-                                valid_jid = False
-                        if valid_jid:
-                            message = xmpp.Message(to_jid, out_message)
-                            message.setAttr('type', 'chat')
-                            cl.send(message)
-                        else:
-                            request.ws_stream.send_message(USER_WARNING, binary=False)
-                if (out_message == "Kill session"):
-                    cl.disconnect()
+                                request.ws_stream.send_message(USER_WARNING, binary=False)
+                    if (out_message == "Kill session"):
+                        cl.disconnect()
+                        return
+                else:
+                    request.ws_stream.send_message(CONN_ERROR, binary=False)
                     return
         else:
             request.ws_stream.send_message(CONN_ERROR, binary=False)
+            return
     except IOError: #Something was causing apache to overload... Meh?
         return
