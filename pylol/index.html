@@ -120,9 +120,11 @@
             return;
           }
 
-          socket.send("#:#outmessage#:# #:#" + activeFriend + "#:# " + messageBox.value);
-          addToChat(userBox.value + ': ' + messageBox.value, activeFriend);
-          messageBox.value = '';
+          if (messageBox.value != '') {
+              socket.send("#:#outmessage#:# #:#" + activeFriend + "#:# " + messageBox.value);
+              addToChat('<b>'+userBox.value+'</b>' + ': ' + messageBox.value, activeFriend);
+              messageBox.value = '';
+          }
         }
 
         function connect() {
@@ -160,7 +162,13 @@
                     document.getElementById(friend+'_chat').style.display = 'none';
                 }
 
-                addToChat(event.data.slice(13), friend);
+                if (event.data.slice(event.data.indexOf(':', 13)-1) != ':') {
+                    addToChat('<b>'+event.data.slice(13, event.data.indexOf(':', 13))+'</b>'+event.data.slice(event.data.indexOf(':', 13)), friend);
+                }
+                else {
+                    addToChat('<b>'+event.data.slice(13, event.data.indexOf(':', 13))+'</b>', friend);
+                }
+
                 playSound('./media/pm_receive.mp3');
                 if (activeFriend != friend) {
                     colorFade(friend, 'background', 'eeeeee', '00ccee', 25, 30);
@@ -221,20 +229,24 @@
 
 <div class="container">
     <div class="outerbox">
-	<div class="row" style="background-color: #ccc; border-bottom: 1px solid #000; border-left: 1px solid #000; border-right: 1px solid #000;">
-        <div class="tencol">
-            <div class="align-right">
-                <form class="inlineform" action="#" onsubmit="connect(); return false;">
-                    Username: <input type="text" id="username" size="15" autocapitalize="off" autocomplete="off" autocorrect="off">
-                    Password: <input type="password" id="password" size="15" autocapitalize="off" autocomplete="off" autocorrect="off">
-                    <input type="submit" value="Log In">
-                </form>
-                <form class="inlineform" action="#" onsubmit="logout(); return false;">
-                    <input type="submit" value="Log Out">
-                </form>
+	<div class="row" style="background-image:url('/media/center.png'); height: 60px;">
+        <img src="/media/left.png" style="float: left;" />
+        <img src="/media/right.png" style="float: right;" />
+        <div clas="row" style="padding: 14px;">
+            <div class="tencol">
+                <div class="align-right">
+                    <form class="inlineform" action="#" onsubmit="connect(); return false;">
+                        Username: <input type="text" id="username" size="15" autocapitalize="off" autocomplete="off" autocorrect="off">
+                        Password: <input type="password" id="password" size="15" autocapitalize="off" autocomplete="off" autocorrect="off">
+                        <input type="submit" class="loginButton" value="">
+                    </form>
+                    <form class="inlineform" action="#" onsubmit="logout(); return false;">
+                        <input type="submit" class="logoutButton" value="">
+                    </form>
+                </div>
             </div>
-        </div>
-        <div class="twocol last">
+            <div class="twocol last">
+            </div>
         </div>
     </div>
     <br>
@@ -242,12 +254,16 @@
         <div class="onecol">
         </div>
         <div class="fivecol">
-            <div id="active_friendheader"></div>
+            <div id="active_friendheaderouter">
+                <div id="active_friendheader"></div>
+            </div>
             <div id="friendholder">
             </div>
         </div>
         <div class="fourcol">
-            <div id="friend_header">Friends List</div>
+            <div id="friend_headerouter">
+                <div id="friend_header">Friends List</div>
+            </div>
             <div id="friends"></div>
         </div>
         <div class="twocol last">
@@ -259,7 +275,7 @@
                 <div class="ninecol">
                     <form action="#" onsubmit="send(); return false;">
                         <input type="text" id="message" class="chatInput" autocomplete="off">
-                        <input type="submit" class="sendButton" value="SEND">
+                        <input type="submit" class="sendButton" value="">
                     </form>
                 </div>
             </div>
@@ -269,16 +285,34 @@
     </div>
     <div class="row">
         <div class="fourcol">
-            <div class="eventheader">Console Log</div>
-            <div id="log"></div>
+            <div class="eventheaderouter">
+                <div class="eventheader">Console Log</div>
+            </div>
+            <div id="logouter">
+                <img src="/media/left2.png" style="float: left;" />
+                <img src="/media/right2.png" style="float: right;" />
+                <div id="log"></div>
+            </div>
         </div>
         <div class="fourcol"> 
-            <div class="eventheader">Friend Requests</div>
-            <div id="friendrequests"></div>
+            <div class="eventheaderouter">
+                <div class="eventheader">Friend Requests</div>
+            </div>
+            <div id="friendrequestsouter">
+                <img src="/media/left2.png" style="float: left;" />
+                <img src="/media/right2.png" style="float: right;" />
+                <div id="friendrequests"></div>
+            </div>
         </div>
         <div class="fourcol last">
-            <div class="eventheader">Game Invites</div>
-            <div id="gameinvites"></div>
+            <div class="eventheaderouter">
+                <div class="eventheader">Game Invites</div>
+            </div>
+            <div id="gameinvitesouter">
+                <img src="/media/left2.png" style="float: left;" />
+                <img src="/media/right2.png" style="float: right;" />
+                <div id="gameinvites"></div>
+            </div>
         </div>
     </div>
     </div>

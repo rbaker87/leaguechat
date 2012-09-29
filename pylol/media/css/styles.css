@@ -8,11 +8,36 @@
 		
 	}
 
+    .loginButton {
+        background:url('/media/login.png') no-repeat top left;
+        border: 1px solid #666;
+        width: 66px;
+        height: 20px;
+    }
+
+    .logoutButton {
+        background:url('/media/logout.png') no-repeat top left;
+        border: 1px solid #666;
+        width: 66px;
+        height: 20px;
+    }
+
+    .sendButton {
+        background:url('/media/send.png') no-repeat top left;
+        border: 1px solid #666;
+        width: 66px;
+        height: 20px;
+    }
+
     .outerbox {
         background-color: #999;
         background-image:url('/media/backpattern.png');
         border: 2px solid #000;
-        padding-bottom: 20px;
+        max-width: 1140px;
+        margin-top: 20px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 20px 20px 20px 20px;
         -moz-border-radius: 8px;
         border-radius: 8px;
         -moz-box-shadow: 0px 0px 8px #000;
@@ -21,29 +46,61 @@
     }
 
     #friends {
+        width: 100%;
         height: 200px;
-        overflow:auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    #friend_headerouter {
+        width: 100%;
+        height: 20px;
+        color: white;
+        font-size: 14px;
+        font-family: "Arial", sans-serif;
+        background-image:url('/media/menubar.png');
+        border: 1px solid #000;
     }
 
     #friend_header {
-        height: 18px;
-        background-color: #0077cc;
+        padding: 2px 0px 0px 0px;
+        width: 50%;
+        margin: 0px auto;
+        text-align: center;
+    }
+
+    #active_friendheaderouter {
+        width: 100%;
+        height: 20px;
+        color: white;
+        font-size: 14px;
+        font-family: "Arial", sans-serif;
+        background-image:url('/media/menubar.png');
         border: 1px solid #000;
     }
 
     #active_friendheader {
-        height: 18px;
-        background-color: #0077cc;
-        border: 1px solid #000;
-        margin-bottom: 2px;
+        padding: 2px 0px 0px 0px;
+        width: 50%;
+        margin: 0px auto;
+        text-align: center;
+    }
+
+    .eventheaderouter {
         width: 100%;
+        height: 20px;
+        color: white;
+        font-size: 14px;
+        font-family: "Arial", sans-serif;
+        background-image:url('/media/menubar.png');
+        border: 1px solid #000;
     }
 
     .eventheader {
-        height: 18px;
-        background-color: #0077cc;
-        border: 1px solid #000;
-        margin-bottom: 2px;
+        padding: 2px 0px 0px 0px;
+        width: 50%;
+        margin: 0px auto;
+        text-align: center;
         width: 100%;
     }
 
@@ -64,13 +121,22 @@
         background-color: #ddd;
     }
 
-    #log {
+    #logouter {
         font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif;
         width: 100%;
+        height: 130px;
+        background-image:url('/media/center2.png');
+        position: relative;
+    }
+
+    #log {
+        position: absolute;
+        width: 93%;
+        left: 15px;
+        top: 15px;
         height: 100px;
-        border: 1px solid #000;
-        overflow: auto;
-        background-color: #ddd;
+        overflow-y: scroll;
+        overflow-x: hidden;
     }
 
     .pad_areabottom {
@@ -93,36 +159,47 @@
         border: 1px solid #000;
     }
 
-    .sendButton {
-        width: 6%;
-        height: 24px;
-        border: 1px solid #000;
-        background-color: #0077cc;
+    #friendrequestsouter {
+        font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif;
+        width: 100%;
+        height: 130px;
+        background-image:url('/media/center2.png');
+        position: relative;
     }
 
     #friendrequests {
+        position: absolute;
+        width: 93%;
+        left: 15px;
+        top: 15px;
+        height: 100px;
+        overflow-y: scroll;
+        overflow-x: hidden;
+    }
+
+    #gameinvitesouter {
         font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif;
         width: 100%;
-        height: 100px;
-        border: 1px solid #000;
-        overflow: auto;
-        background-color: #ddd;
+        height: 130px;
+        background-image:url('/media/center2.png');
+        position: relative;
     }
 
     #gameinvites {
-        font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif;
-        width: 100%;
+        position: absolute;
+        width: 93%;
+        left: 15px;
+        top: 15px;
         height: 100px;
-        border: 1px solid #000;
-        overflow: auto;
-        background-color: #ddd;
+        overflow-y: scroll;
+        overflow-x: hidden;
     }
 
     .friendentry {
         margin-top: 2px;
         background-color: #eee;
         border: 1px solid #ccc;
-        width: 99.5%;
+        width: 100%;
         cursor: pointer;
     }
 
