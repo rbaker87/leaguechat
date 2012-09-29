@@ -232,55 +232,44 @@
 	<div class="row" style="background-image:url('/media/center.png'); height: 60px;">
         <img src="/media/left.png" style="float: left;" />
         <img src="/media/right.png" style="float: right;" />
-        <div clas="row" style="padding: 14px;">
-            <div class="tencol">
+        <div clas="row" style="padding: 14px; position: relative;">
                 <div class="align-right">
                     <form class="inlineform" action="#" onsubmit="connect(); return false;">
-                        Username: <input type="text" id="username" size="15" autocapitalize="off" autocomplete="off" autocorrect="off">
-                        Password: <input type="password" id="password" size="15" autocapitalize="off" autocomplete="off" autocorrect="off">
+                        Username: <input type="text" id="username" class="idinput" autocapitalize="off" autocomplete="off" autocorrect="off">
+                        Password: <input type="password" id="password" class="idinput" autocapitalize="off" autocomplete="off" autocorrect="off">
                         <input type="submit" class="loginButton" value="">
                     </form>
                     <form class="inlineform" action="#" onsubmit="logout(); return false;">
                         <input type="submit" class="logoutButton" value="">
                     </form>
                 </div>
-            </div>
-            <div class="twocol last">
-            </div>
         </div>
     </div>
     <br>
     <div class="row">
-        <div class="onecol">
-        </div>
-        <div class="fivecol">
+        <div class="sevencol">
             <div id="active_friendheaderouter">
                 <div id="active_friendheader"></div>
             </div>
             <div id="friendholder">
             </div>
         </div>
-        <div class="fourcol">
+        <div class="onecol"></div>
+        <div class="fourcol last">
             <div id="friend_headerouter">
                 <div id="friend_header">Friends List</div>
             </div>
             <div id="friends"></div>
         </div>
-        <div class="twocol last">
-        </div>
     </div>
-    <div class="row">
-        <div class="pad_areabottom">
-            <div class="floattobottom">
-                <div class="ninecol">
+    <div class="row" style="margin: 10px 0px 10px 0px;">
+                <div class="sevencol">
                     <form action="#" onsubmit="send(); return false;">
                         <input type="text" id="message" class="chatInput" autocomplete="off">
                         <input type="submit" class="sendButton" value="">
                     </form>
                 </div>
-            </div>
-        </div>
-        <div class="threecol last">
+        <div class="fivecol last">
         </div>
     </div>
     <div class="row">

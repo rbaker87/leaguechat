@@ -139,22 +139,8 @@
         overflow-x: hidden;
     }
 
-    .pad_areabottom {
-        position: relative;
-        height: 180px;
-        width: 100%;
-        margin-bottom: 20px;
-    }
-
-    .floattobottom {
-        width: 100%;
-        position: absolute;
-        bottom: 0;
-        left: 0;
-    }
-    
     .chatInput {
-        width: 90%;
+        width: 80%;
         height: 20px;
         border: 1px solid #000;
     }
@@ -204,8 +190,13 @@
     }
 
     .align-right {
-        float: right;
+        position: absolute;
+        right: 0;
         padding: 5px 0px 5px 0px;
+    }
+    
+    .idinput {
+        width: 15%;
     }
 
     .inlineform {
