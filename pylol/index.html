@@ -78,7 +78,7 @@
             else {
                 logBox.innerHTML += log + '<br>';
             }
-            logBox.scrollTop = 1000000;
+            logBox.scrollTop = (logBox.scrollHeight - logBox.offsetHeight);
         }
 
         function addToFriendLog(log) {
@@ -88,7 +88,7 @@
             else {
                 friendRequestBox.innerHTML += log + '<br>';
             }
-            friendRequestBox.scrollTop = 1000000;
+            friendRequestBox.scrollTop = (friendRequestBox.scrollHeight - friendRequestBox.offsetHeight);
         }
 
         function addToGameLog(log) {
@@ -98,7 +98,7 @@
             else {
                 gameBox.innerHTML += log + '<br>';
             }
-            gameBox.scrollTop = 1000000;
+            gameBox.scrollTop = (gameBox.scrollHeight - gameBox.offsetHeight);
         }
 
         function addToChat(log, friend) {
@@ -109,7 +109,7 @@
             else {
                 chatBox.innerHTML += log + '<br>';
             }
-            chatBox.scrollTop = 1000000;
+            chatBox.scrollTop = (chatBox.scrollHeight - chatBox.offsetHeight);
         }
 
         function setActiveFriend(friend) {
@@ -208,8 +208,14 @@
             }
             if (event.data.indexOf("#:#statusupdate#:#") != -1) {
                 friend = event.data.slice(18,event.data.indexOf(':', 18));
+                oldStatus = '';
+                if (friendStatus[friend] != undefined) {
+                    oldStatus = friendStatus[friend];
+                }
                 friendStatus[friend] = " : " + event.data.slice(event.data.indexOf(':', 18)+1);
-                addToLog(friend + " set status to '" + friendStatus[friend] + "'");
+                if (oldStatus != friendStatus[friend]) {
+                    addToLog(friend + " set status to '" + friendStatus[friend] + "'");
+                }
             }
             if (event.data.indexOf("#:#friendupdate#:#") != -1) {
                 updateFriends(event.data.slice(18));
