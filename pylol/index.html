@@ -38,6 +38,12 @@
         var friendStatus = new Object();
         var showTimeStamps = new Boolean(true);
 
+        function sanitizeMsg(msg) {
+            msg = msg.replace(/</g, "&lt;");
+            msg = msg.replace(/>/g, "&gt;");
+            return msg;
+        }
+
         function getTimeStamp() {
             d=new Date();
             t=d.toLocaleTimeString();
@@ -155,7 +161,8 @@
 
           if (messageBox.value != '') {
               socket.send("#:#outmessage#:# #:#" + activeFriend + "#:# " + messageBox.value);
-              addToChat('<b>'+userBox.value+'</b>' + ': ' + messageBox.value, activeFriend);
+              out_msg = sanitizeMsg(messageBox.value);
+              addToChat('<b>'+userBox.value+'</b>' + ': ' + out_msg, activeFriend);
               messageBox.value = '';
           }
         }
@@ -195,7 +202,7 @@
                     document.getElementById(friend+'_chat').style.display = 'none';
                 }
 
-                addToChat('<b>'+event.data.slice(13, event.data.indexOf(':', 13))+'</b>'+event.data.slice(event.data.indexOf(':', 13)), friend);
+                addToChat('<b>'+event.data.slice(13, event.data.indexOf(':', 13))+'</b>'+sanitizeMsg(event.data.slice(event.data.indexOf(':', 13))), friend);
 
                 playSound('./media/pm_receive.mp3');
                 if (activeFriend != friend) {
@@ -214,7 +221,7 @@
                 }
                 friendStatus[friend] = " : " + event.data.slice(event.data.indexOf(':', 18)+1);
                 if (oldStatus != friendStatus[friend]) {
-                    addToLog(friend + " set status to '" + friendStatus[friend] + "'");
+                    addToLog(friend + " set status to '" + sanitizeMsg(friendStatus[friend]) + "'");
                 }
             }
             if (event.data.indexOf("#:#friendupdate#:#") != -1) {
