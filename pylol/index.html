@@ -35,6 +35,14 @@
         var newMessages = 0;
         var pageTitle = 'PyLoL';
         var windowFocused = new Boolean(true);
+        var friendStatus = new Object();
+        var showTimeStamps = new Boolean(true);
+
+        function getTimeStamp() {
+            d=new Date();
+            t=d.toLocaleTimeString();
+            return t;
+        }
 
         function playSound(soundfile) {
             document.getElementById("dummy").innerHTML="<embed src=\""+soundfile+"\" hidden=\"true\" autostart=\"true\" loop=\"false\" />";
@@ -64,24 +72,44 @@
         });
 
         function addToLog(log) {
-          logBox.innerHTML += log + '<br>';
-          logBox.scrollTop = 1000000;
+            if (showTimeStamps == true) {
+                logBox.innerHTML += "<"+getTimeStamp()+"> " + log + '<br>';
+            }
+            else {
+                logBox.innerHTML += log + '<br>';
+            }
+            logBox.scrollTop = 1000000;
         }
 
         function addToFriendLog(log) {
-          friendRequestBox.innerHTML += log + '<br>';
-          friendRequestBox.scrollTop = 1000000;
+            if (showTimeStamps == true) {
+                friendRequestBox.innerHTML += "<"+getTimeStamp()+"> " + log + '<br>';
+            }
+            else {
+                friendRequestBox.innerHTML += log + '<br>';
+            }
+            friendRequestBox.scrollTop = 1000000;
         }
 
         function addToGameLog(log) {
-          gameBox.innerHTML += log + '<br>';
-          gameBox.scrollTop = 1000000;
+            if (showTimeStamps == true) {
+                gameBox.innerHTML += "<"+getTimeStamp()+"> " + log + '<br>';
+            }
+            else {
+                gameBox.innerHTML += log + '<br>';
+            }
+            gameBox.scrollTop = 1000000;
         }
 
         function addToChat(log, friend) {
-          chatBox = document.getElementById(friend+'_chat');
-          chatBox.innerHTML += log + '<br>';
-          chatBox.scrollTop = 1000000;
+            chatBox = document.getElementById(friend+'_chat');
+            if (showTimeStamps == true) {
+                chatBox.innerHTML += "<"+getTimeStamp()+"> " + log + '<br>';
+            }
+            else {
+                chatBox.innerHTML += log + '<br>';
+            }
+            chatBox.scrollTop = 1000000;
         }
 
         function setActiveFriend(friend) {
@@ -107,7 +135,12 @@
         }
 
         function updateFriends(log) {
-          friendBox.innerHTML += "<div class='friendentry' id='"+log+"' onclick='setActiveFriend(\""+log+"\");'>" + log + '</div>';
+            if (friendStatus[log] != undefined) {
+                friendBox.innerHTML += "<div class='friendentry' id='"+log+"' onclick='setActiveFriend(\""+log+"\");'>" + log + friendStatus[log] + '</div>';
+            }
+            else {
+                friendBox.innerHTML += "<div class='friendentry' id='"+log+"' onclick='setActiveFriend(\""+log+"\");'>" + log + '</div>';
+            }
         }
 
         function clearFriends() {
@@ -162,12 +195,7 @@
                     document.getElementById(friend+'_chat').style.display = 'none';
                 }
 
-                if (event.data.slice(event.data.indexOf(':', 13)-1) != ':') {
-                    addToChat('<b>'+event.data.slice(13, event.data.indexOf(':', 13))+'</b>'+event.data.slice(event.data.indexOf(':', 13)), friend);
-                }
-                else {
-                    addToChat('<b>'+event.data.slice(13, event.data.indexOf(':', 13))+'</b>', friend);
-                }
+                addToChat('<b>'+event.data.slice(13, event.data.indexOf(':', 13))+'</b>'+event.data.slice(event.data.indexOf(':', 13)), friend);
 
                 playSound('./media/pm_receive.mp3');
                 if (activeFriend != friend) {
@@ -177,6 +205,11 @@
                     newMessages += 1;
                     document.title = pageTitle + ' (' + newMessages + ')';
                 }
+            }
+            if (event.data.indexOf("#:#statusupdate#:#") != -1) {
+                friend = event.data.slice(18,event.data.indexOf(':', 18));
+                friendStatus[friend] = " : " + event.data.slice(event.data.indexOf(':', 18)+1);
+                addToLog(friend + " set status to '" + friendStatus[friend] + "'");
             }
             if (event.data.indexOf("#:#friendupdate#:#") != -1) {
                 updateFriends(event.data.slice(18));

@@ -4,6 +4,7 @@ import threading
 import signal
 import re
 from mod_pywebsocket import msgutil
+from messages_en import *   #Eventually support other localizations
 
 class CheckMessages(threading.Thread):
     def __init__(self, conn, message_sender):
@@ -17,6 +18,20 @@ class CheckMessages(threading.Thread):
         if str(msg.getType()) != "unavailable":
             if str(msg.getFrom()) not in self.alive_users:
                 self.alive_users.append(str(msg.getFrom()))
+            roster = self.conn.getRoster()
+            received_from = 'Blank'
+            for user in self.alive_users:
+                if str(user) == str(msg.getFrom()):
+                    received_from = roster.getName(user)
+            status_msg = str(msg.getStatus())
+            endpoint = status_msg.find("</statusMsg>")
+            if endpoint != -1:
+                startpoint = status_msg.find("<statusMsg>") + 11
+                self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
+                self.message_sender.send_nowait("#:#clearfriends#:#")
+                for user in self.alive_users:
+                    if roster.getName(user) != None:
+                        self.message_sender.send_nowait("#:#friendupdate#:#%s" % roster.getName(user))
         else:
             self.alive_users.remove(str(msg.getFrom()))
 
@@ -59,7 +74,6 @@ def web_socket_do_extra_handshake(request):
 
 def web_socket_transfer_data(request):
     try:
-        from messages_en import *   #Eventually support other localizations
         line = request.ws_stream.receive_message()
         if str(line).startswith('username'):
             username = str(line)[8:]
