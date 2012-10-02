@@ -45,9 +45,14 @@
         }
 
         function urlify(text) {
-            var urlRegex = /(([a-z]+:\/\/)?(([a-z0-9\-]+\.)+([a-z]{2}|aero|arpa|biz|com|coop|edu|gov|info|int|jobs|mil|museum|name|nato|net|org|pro|travel|local|internal))(:[0-9]{1,5})?(\/[a-z0-9_\-\.~]+)*(\/([a-z0-9_\-\.]*)(\?[a-z0-9+_\-\.%=&amp;]*)?)?(#[a-zA-Z0-9!$&'()*+.=-_~:@/?]*)?)(\s+|$)/g;
+            var urlRegex = /(([a-zA-Z]+:\/\/)?(([a-zA-Z0-9\-]+\.)+([a-z]{2}|aero|arpa|biz|com|coop|edu|gov|info|int|jobs|mil|museum|name|nato|net|org|pro|travel|local|internal))(:[0-9]{1,5})?(\/[a-zA-Z0-9_\-\.~]+)*(\/([a-zA-Z0-9_\-\.]*)(\?[a-zA-Z0-9+_\-\.%=&amp;]*)?)?(#[a-zA-Z0-9!$&'()*+.=-_~:@/?]*)?)(\s+|$)/g;
             return text.replace(urlRegex, function(url) {
-                return '<a href="' + url + '" target="_blank">' + url + '</a>';
+                if ((url.indexOf("http://") == -1) && (url.indexOf("https://") == -1)) {
+                    return '<a href="http://' + url + '" target="_blank">' + url + '</a>';
+                }
+                else {
+                    return '<a href="' + url + '" target="_blank">' + url + '</a>';
+                }
             })
         }
         
@@ -145,6 +150,7 @@
             }
             document.getElementById(friend+'_chat').style.display = 'block';
             chatBox = document.getElementById(friend+'_chat');
+            document.getElementById('message').focus();
         }
 
         function updateFriends(log) {
@@ -184,6 +190,7 @@
           }
 
           socket.onopen = function () {
+            document.getElementById('message').focus();
             socket.binaryType = 'blob';
             socket.send('username' + userBox.value);
             socket.send('password' + passBox.value);
