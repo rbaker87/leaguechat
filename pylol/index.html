@@ -44,6 +44,13 @@
             return msg;
         }
 
+        function urlify(text) {
+            var urlRegex = /(([a-z]+:\/\/)?(([a-z0-9\-]+\.)+([a-z]{2}|aero|arpa|biz|com|coop|edu|gov|info|int|jobs|mil|museum|name|nato|net|org|pro|travel|local|internal))(:[0-9]{1,5})?(\/[a-z0-9_\-\.~]+)*(\/([a-z0-9_\-\.]*)(\?[a-z0-9+_\-\.%=&amp;]*)?)?(#[a-zA-Z0-9!$&'()*+.=-_~:@/?]*)?)(\s+|$)/g;
+            return text.replace(urlRegex, function(url) {
+                return '<a href="' + url + '" target="_blank">' + url + '</a>';
+            })
+        }
+        
         function getTimeStamp() {
             d=new Date();
             t=d.toLocaleTimeString();
@@ -110,7 +117,7 @@
         function addToChat(log, friend) {
             chatBox = document.getElementById(friend+'_chat');
             if (showTimeStamps == true) {
-                chatBox.innerHTML += "<"+getTimeStamp()+"> " + log + '<br>';
+                chatBox.innerHTML += "<"+getTimeStamp()+"> " + urlify(log) + '<br>';
             }
             else {
                 chatBox.innerHTML += log + '<br>';
@@ -142,7 +149,7 @@
 
         function updateFriends(log) {
             if (friendStatus[log] != undefined) {
-                friendBox.innerHTML += "<div class='friendentry' id='"+log+"' onclick='setActiveFriend(\""+log+"\");'>" + log + friendStatus[log] + '</div>';
+                friendBox.innerHTML += "<div class='friendentry' id='"+log+"' onclick='setActiveFriend(\""+log+"\");'>" + log + " : " + friendStatus[log] + '</div>';
             }
             else {
                 friendBox.innerHTML += "<div class='friendentry' id='"+log+"' onclick='setActiveFriend(\""+log+"\");'>" + log + '</div>';
@@ -219,7 +226,7 @@
                 if (friendStatus[friend] != undefined) {
                     oldStatus = friendStatus[friend];
                 }
-                friendStatus[friend] = " : " + event.data.slice(event.data.indexOf(':', 18)+1);
+                friendStatus[friend] = event.data.slice(event.data.indexOf(':', 18)+1);
                 if (oldStatus != friendStatus[friend]) {
                     addToLog(friend + " set status to '" + sanitizeMsg(friendStatus[friend]) + "'");
                 }
