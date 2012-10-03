@@ -1,12 +1,15 @@
+"""PyLoL - Websocket handlers for interacting with the Riot Jabber servers"""
+
 import xmpp
-import time
 import threading
-import signal
-import re
 from mod_pywebsocket import msgutil
 from messages_en import *   #Eventually support other localizations
 
 class CheckMessages(threading.Thread):
+    """
+    Constantly check for network data in a separate thread.
+    """
+
     def __init__(self, conn, message_sender):
         threading.Thread.__init__(self)
         self.conn = conn
@@ -14,7 +17,11 @@ class CheckMessages(threading.Thread):
         self.alive_users = []
         self.message_sender = message_sender
 
-    def presenceCB(self,conn,msg):
+    def presenceCB(self, conn, msg):
+        """
+        Receive and process jabber presence updates.
+        """
+
         if str(msg.getType()) != "unavailable":
             if str(msg.getFrom()) not in self.alive_users:
                 self.alive_users.append(str(msg.getFrom()))
@@ -35,7 +42,11 @@ class CheckMessages(threading.Thread):
         else:
             self.alive_users.remove(str(msg.getFrom()))
 
-    def messageCB(self,conn,msg):
+    def messageCB(self, conn, msg):
+        """
+        Receive and process jabber messages.
+        """
+
         roster = self.conn.getRoster()
         received_from = 'Blank'
         for user in self.alive_users:
@@ -44,11 +55,14 @@ class CheckMessages(threading.Thread):
         self.message_sender.send_nowait("#:#message#:#%s: %s" % (str(received_from), str(msg.getBody())))
 
     def StepOn(self):
+        """
+        Keep the connection alive and process network data on an interval.
+        """
+
         if self.conn.isConnected():
             try:
                 self.conn.Process(1)
                 roster = self.conn.getRoster()
-                roster_list = roster.getItems()
 
                 if self.user_length != len(self.alive_users):
                     self.message_sender.send_nowait("#:#clearfriends#:#")
@@ -65,14 +79,26 @@ class CheckMessages(threading.Thread):
         return 1
 
     def run(self):
+        """
+        Maintain iteration while the connection exists.
+        """
+
         while self.StepOn():
             pass
 
 def web_socket_do_extra_handshake(request):
+    """
+    Handle initial data on connection.
+    """
+
     pass  # Always accept.
 
 
 def web_socket_transfer_data(request):
+    """
+    Loop while connection exists and process data to be sent and received.
+    """
+
     try:
         line = request.ws_stream.receive_message()
         if str(line).startswith('username'):
@@ -81,35 +107,34 @@ def web_socket_transfer_data(request):
         if str(line).startswith('password'):
             passwd = 'AIR_' + str(line)[8:]
         out_message = ''
-        cl = xmpp.Client('pvp.net', debug=[])
-        if cl.connect(server=('chat.na1.lol.riotgames.com',5223)) == "":
+        client = xmpp.Client('pvp.net', debug=[])
+        if client.connect(server=('chat.na1.lol.riotgames.com', 5223)) == "":
             request.ws_stream.send_message(CONN_ERROR, binary=False)
             return
-        if cl.auth(username,passwd,"xiff") == None:
+        if client.auth(username, passwd, "xiff") == None:
             request.ws_stream.send_message(AUTH_ERROR, binary=False)
             return
-        if cl.isConnected():
-            cl.sendInitPresence(requestRoster=1)
+        if client.isConnected():
+            client.sendInitPresence(requestRoster=1)
 
             message_sender = msgutil.MessageSender(request)
 
-            incoming_thread = CheckMessages(cl, message_sender)
+            incoming_thread = CheckMessages(client, message_sender)
             incoming_thread.setDaemon(True)
             incoming_thread.start()
 
-            cl.RegisterHandler('presence', incoming_thread.presenceCB)
-            cl.RegisterHandler('message', incoming_thread.messageCB)
+            client.RegisterHandler('presence', incoming_thread.presenceCB)
+            client.RegisterHandler('message', incoming_thread.messageCB)
 
             request.ws_stream.send_message(CONN_SUCCESS, binary=False)
             to_jid = None #jid for the user receiving the message
             while True:
                 line = request.ws_stream.receive_message()
-                if cl.isConnected():    #Check connection on each loop
+                if client.isConnected():    #Check connection on each loop
                     out_message = str(line)
                     if ((out_message != "Keep alive") and (out_message != "Kill session")):
                         split_out = out_message.split()
-                        roster = cl.getRoster()
-                        roster_list = roster.getItems()
+                        roster = client.getRoster()
                         try:
                             if split_out[0] == '#:#outmessage#:#':
                                 to_jid = split_out[1][3:-3]
@@ -129,11 +154,11 @@ def web_socket_transfer_data(request):
                             if valid_jid:
                                 message = xmpp.Message(to_jid, out_message)
                                 message.setAttr('type', 'chat')
-                                cl.send(message)
+                                client.send(message)
                             else:
                                 request.ws_stream.send_message(USER_WARNING, binary=False)
                     if (out_message == "Kill session"):
-                        cl.disconnect()
+                        client.disconnect()
                         return
                 else:
                     request.ws_stream.send_message(CONN_ERROR, binary=False)

@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 #Errors for the 'errors' message queue
-LOGIN_ERROR = "#:#error#:#Enter a username and password"
 CONN_ERROR = "#:#error#:#Not connected"
 CONN_SUCCESS = "#:#error#:#Connected"
 AUTH_ERROR = "#:#error#:#Authentication failed"
