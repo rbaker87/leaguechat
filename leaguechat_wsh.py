@@ -46,6 +46,8 @@ class CheckMessages(threading.Thread):
                     self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'In Queue'))
                 elif status_msg[startpoint:endpoint] == 'outOfGame':
                     self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'Online'))
+                elif status_msg[startpoint:endpoint] == 'spectating':
+                    self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'Spectating'))
                 else:
                     self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
 
