@@ -47,7 +47,16 @@ class CheckMessages(threading.Thread):
                 elif status_msg[startpoint:endpoint] == 'outOfGame':
                     self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'Online'))
                 elif status_msg[startpoint:endpoint] == 'spectating':
-                    self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'Spectating'))
+                    endpoint = status_msg.find("</dropInSpectateGameId>")
+                    if endpoint != -1:
+                        startpoint = status_msg.find("<dropInSpectateGameId>") + 22
+                        if 'featured_game' in status_msg[startpoint:endpoint]:
+                            game_name = 'Featured Game'
+                        else:
+                            game_name = status_msg[startpoint:endpoint]
+                    else:
+                        game_name = ''
+                    self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'Spectating %s' % game_name))
                 else:
                     self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
 
