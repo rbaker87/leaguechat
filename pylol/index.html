@@ -264,7 +264,12 @@
                 if (oldGame != friendGame[friend]) {
                     addToLog(friend + " is now " + sanitizeMsg(friendGame[friend]));
                 }
-                document.getElementById(friend).innerHTML = friend + " : " + friendStatus[friend] + "<br>" + friendGame[friend];
+                if (friendStatus[friend].length != 0){
+                    document.getElementById(friend).innerHTML = friend + " : " + friendStatus[friend] + "<br>" + friendGame[friend];
+                }
+                else {
+                    document.getElementById(friend).innerHTML = friend + "<br>" + friendGame[friend];
+                }
             }
             if (event.data.indexOf("#:#friendupdate#:#") != -1) {
                 updateFriends(event.data.slice(18));
