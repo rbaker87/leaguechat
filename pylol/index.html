@@ -271,6 +271,11 @@
                     document.getElementById(friend).innerHTML = friend + "<br>" + friendGame[friend];
                 }
             }
+            if (event.data.indexOf("#:#gameinvite#:#") != -1) {
+                friend = event.data.slice(16,event.data.indexOf(':', 16));
+                invite_label = event.data.slice(event.data.indexOf(':', 18)+1);
+                addToGameLog(friend + " : " + invite_label);
+            }
             if (event.data.indexOf("#:#friendupdate#:#") != -1) {
                 updateFriends(event.data.slice(18));
             }

@@ -73,7 +73,13 @@ class CheckMessages(threading.Thread):
         for user in self.alive_users:
             if str(user) == str(msg.getFrom()):
                 received_from = roster.getName(user)
-        self.message_sender.send_nowait("#:#message#:#%s: %s" % (str(received_from), str(msg.getBody())))
+        status_msg = str(msg.getBody())
+        endpoint = status_msg.find("</gameType>")
+        if ((endpoint != -1) and (status_msg.find('<inviteId>') != -1)):    #Redundant on the offchance someone uses one of these tags in a real message
+            startpoint = status_msg.find("<gameType>") + 10
+            self.message_sender.send_nowait("#:#gameinvite#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
+        else:
+            self.message_sender.send_nowait("#:#message#:#%s: %s" % (str(received_from), str(msg.getBody())))
 
     def step_on(self):
         """
