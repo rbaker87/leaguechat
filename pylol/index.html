@@ -275,6 +275,7 @@
                 friend = event.data.slice(16,event.data.indexOf(':', 16));
                 invite_label = event.data.slice(event.data.indexOf(':', 18)+1);
                 addToGameLog(friend + " : " + invite_label);
+                playSound('./media/buddy_invite.mp3');
             }
             if (event.data.indexOf("#:#friendupdate#:#") != -1) {
                 updateFriends(event.data.slice(18));
