@@ -17,7 +17,7 @@ class CheckMessages(threading.Thread):
         self.alive_users = []
         self.message_sender = message_sender
 
-    def presenceCB(self, conn, msg):
+    def presence_update(self, conn, msg):
         """
         Receive and process jabber presence updates.
         """
@@ -42,7 +42,7 @@ class CheckMessages(threading.Thread):
         else:
             self.alive_users.remove(str(msg.getFrom()))
 
-    def messageCB(self, conn, msg):
+    def message_update(self, conn, msg):
         """
         Receive and process jabber messages.
         """
@@ -54,7 +54,7 @@ class CheckMessages(threading.Thread):
                 received_from = roster.getName(user)
         self.message_sender.send_nowait("#:#message#:#%s: %s" % (str(received_from), str(msg.getBody())))
 
-    def StepOn(self):
+    def step_on(self):
         """
         Keep the connection alive and process network data on an interval.
         """
@@ -83,7 +83,7 @@ class CheckMessages(threading.Thread):
         Maintain iteration while the connection exists.
         """
 
-        while self.StepOn():
+        while self.step_on():
             pass
 
 def web_socket_do_extra_handshake(request):
@@ -123,8 +123,8 @@ def web_socket_transfer_data(request):
             incoming_thread.setDaemon(True)
             incoming_thread.start()
 
-            client.RegisterHandler('presence', incoming_thread.presenceCB)
-            client.RegisterHandler('message', incoming_thread.messageCB)
+            client.RegisterHandler('presence', incoming_thread.presence_update)
+            client.RegisterHandler('message', incoming_thread.message_update)
 
             request.ws_stream.send_message(CONN_SUCCESS, binary=False)
             to_jid = None #jid for the user receiving the message
