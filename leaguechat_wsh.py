@@ -35,10 +35,6 @@ class CheckMessages(threading.Thread):
             if endpoint != -1:
                 startpoint = status_msg.find("<statusMsg>") + 11
                 self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
-                self.message_sender.send_nowait("#:#clearfriends#:#")
-                for user in self.alive_users:
-                    if roster.getName(user) != None:
-                        self.message_sender.send_nowait("#:#friendupdate#:#%s" % roster.getName(user))
             endpoint = status_msg.find("</gameStatus>")
             if endpoint != -1:
                 startpoint = status_msg.find("<gameStatus>") + 12
@@ -49,10 +45,6 @@ class CheckMessages(threading.Thread):
                         self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), 'In Queue'))
                     else:
                         self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
-                    self.message_sender.send_nowait("#:#clearfriends#:#")
-                    for user in self.alive_users:
-                        if roster.getName(user) != None:
-                            self.message_sender.send_nowait("#:#friendupdate#:#%s" % roster.getName(user))
 
         else:
             self.alive_users.remove(str(msg.getFrom()))

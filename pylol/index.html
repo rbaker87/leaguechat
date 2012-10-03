@@ -238,6 +238,7 @@
                 if (oldStatus != friendStatus[friend]) {
                     addToLog(friend + " set status to '" + sanitizeMsg(friendStatus[friend]) + "'");
                 }
+                document.getElementById(friend).innerHTML = friend + " : " + friendStatus[friend];
             }
             if (event.data.indexOf("#:#friendupdate#:#") != -1) {
                 updateFriends(event.data.slice(18));
