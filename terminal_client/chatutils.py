@@ -18,6 +18,7 @@ class CheckMessages(threading.Thread):
         #Currently only adds to the list
         if str(msg.getFrom()) not in self.alive_users:
             self.alive_users.append(str(msg.getFrom()))
+        print msg.getStatus()
 
     def messageCB(self,conn,msg):
         roster = self.conn.getRoster()

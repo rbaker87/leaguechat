@@ -36,6 +36,7 @@
         var pageTitle = 'PyLoL';
         var windowFocused = new Boolean(true);
         var friendStatus = new Object();
+        var friendGame = new Object();
         var showTimeStamps = new Boolean(true);
 
         function sanitizeMsg(msg) {
@@ -154,12 +155,20 @@
         }
 
         function updateFriends(log) {
-            if (friendStatus[log] != undefined) {
-                friendBox.innerHTML += "<div class='friendentry' id='"+log+"' onclick='setActiveFriend(\""+log+"\");'>" + log + " : " + friendStatus[log] + '</div>';
+            if ((friendStatus[log] != undefined) && (friendStatus[log] != '')) {
+                friend_status = ' : ' + friendStatus[log];
             }
             else {
-                friendBox.innerHTML += "<div class='friendentry' id='"+log+"' onclick='setActiveFriend(\""+log+"\");'>" + log + '</div>';
+                friend_status = '';
             }
+            if (friendGame[log] != undefined) {
+                friend_game = friendGame[log];
+            }
+            else {
+                friend_game = '';
+            }
+
+            friendBox.innerHTML += "<div class='friendentry' id='"+log+"' onclick='setActiveFriend(\""+log+"\");'>" + log + friend_status + '<br>' + friend_game + '</div>';
         }
 
         function clearFriends() {
@@ -238,7 +247,24 @@
                 if (oldStatus != friendStatus[friend]) {
                     addToLog(friend + " set status to '" + sanitizeMsg(friendStatus[friend]) + "'");
                 }
-                document.getElementById(friend).innerHTML = friend + " : " + friendStatus[friend];
+                if (friendStatus[friend].length != 0){
+                    document.getElementById(friend).innerHTML = friend + " : " + friendStatus[friend];
+                }
+                else {
+                    document.getElementById(friend).innerHTML = friend;
+                }
+            }
+            if (event.data.indexOf("#:#gameupdate#:#") != -1) {
+                friend = event.data.slice(16,event.data.indexOf(':', 16));
+                oldGame = '';
+                if (friendGame[friend] != undefined) {
+                    oldGame = friendGame[friend];
+                }
+                friendGame[friend] = event.data.slice(event.data.indexOf(':', 16)+1);
+                if (oldGame != friendGame[friend]) {
+                    addToLog(friend + " is now " + sanitizeMsg(friendGame[friend]));
+                }
+                document.getElementById(friend).innerHTML = friend + " : " + friendStatus[friend] + "<br>" + friendGame[friend];
             }
             if (event.data.indexOf("#:#friendupdate#:#") != -1) {
                 updateFriends(event.data.slice(18));

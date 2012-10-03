@@ -35,16 +35,19 @@ class CheckMessages(threading.Thread):
             if endpoint != -1:
                 startpoint = status_msg.find("<statusMsg>") + 11
                 self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
+            else:
+                self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), ''))
             endpoint = status_msg.find("</gameStatus>")
             if endpoint != -1:
                 startpoint = status_msg.find("<gameStatus>") + 12
-                if status_msg[startpoint:endpoint] != 'outOfGame':
-                    if status_msg[startpoint:endpoint] == 'inGame':
-                        self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), 'In Game'))
-                    elif status_msg[startpoint:endpoint] == 'inQueue':
-                        self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), 'In Queue'))
-                    else:
-                        self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
+                if status_msg[startpoint:endpoint] == 'inGame':
+                    self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'In Game'))
+                elif status_msg[startpoint:endpoint] == 'inQueue':
+                    self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'In Queue'))
+                elif status_msg[startpoint:endpoint] == 'outOfGame':
+                    self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'Online'))
+                else:
+                    self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
 
         else:
             self.alive_users.remove(str(msg.getFrom()))
