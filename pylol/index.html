@@ -167,6 +167,7 @@
         }
 
         function send() {
+          messageBox = document.getElementById('message');
           if (!socket) {
             addToLog('Not connected');
             return;
