@@ -312,6 +312,10 @@
                 <div id="active_friendheader"></div>
             </div>
             <div id="friendholder">
+                <form id="inputform" action="#" onsubmit="send(); return false;">
+                    <input type="text" id="message" class="chatInput" autocomplete="off">
+                    <input type="submit" class="sendButton" value="">
+                </form>
             </div>
         </div>
         <div class="onecol"></div>
@@ -320,16 +324,6 @@
                 <div id="friend_header">Friends List</div>
             </div>
             <div id="friends"></div>
-        </div>
-    </div>
-    <div class="row" style="margin: 10px 0px 10px 0px;">
-                <div class="sevencol">
-                    <form action="#" onsubmit="send(); return false;">
-                        <input type="text" id="message" class="chatInput" autocomplete="off">
-                        <input type="submit" class="sendButton" value="">
-                    </form>
-                </div>
-        <div class="fivecol last">
         </div>
     </div>
     <div class="row">
