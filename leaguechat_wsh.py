@@ -39,6 +39,21 @@ class CheckMessages(threading.Thread):
                 for user in self.alive_users:
                     if roster.getName(user) != None:
                         self.message_sender.send_nowait("#:#friendupdate#:#%s" % roster.getName(user))
+            endpoint = status_msg.find("</gameStatus>")
+            if endpoint != -1:
+                startpoint = status_msg.find("<gameStatus>") + 12
+                if status_msg[startpoint:endpoint] != 'outOfGame':
+                    if status_msg[startpoint:endpoint] == 'inGame':
+                        self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), 'In Game'))
+                    elif status_msg[startpoint:endpoint] == 'inQueue':
+                        self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), 'In Queue'))
+                    else:
+                        self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
+                    self.message_sender.send_nowait("#:#clearfriends#:#")
+                    for user in self.alive_users:
+                        if roster.getName(user) != None:
+                            self.message_sender.send_nowait("#:#friendupdate#:#%s" % roster.getName(user))
+
         else:
             self.alive_users.remove(str(msg.getFrom()))
 
