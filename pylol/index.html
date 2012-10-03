@@ -18,10 +18,9 @@
 
     <script>
         var socket = null;
-
         var showTimeStamp = false;
         var addressWs = "ws://pylol.com/leaguechat";
-
+        var invite_message = "Sorry, I cannot accept your game invite at this time. I am using the PyLoL chat client.";
         var logBox = null;
         var friendBox = null;
         var friendRequestBox = null;
@@ -276,6 +275,7 @@
                 invite_label = event.data.slice(event.data.indexOf(':', 18)+1);
                 addToGameLog(friend + " : " + invite_label);
                 playSound('./media/buddy_invite.mp3');
+                socket.send("#:#outmessage#:# #:#" + friend + "#:# " + invite_message);
             }
             if (event.data.indexOf("#:#friendupdate#:#") != -1) {
                 updateFriends(event.data.slice(18));
