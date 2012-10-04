@@ -164,7 +164,7 @@ def web_socket_transfer_data(request):
             return
         if client.isConnected():
             client.sendInitPresence(requestRoster=1)
-            pres = xmpp.Presence(typ='available',show='chat',status='available')
+            pres = xmpp.Presence(show='chat')
             pres.setStatus(STATUS_MSG)
             client.send(pres)
 
