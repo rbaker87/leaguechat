@@ -32,6 +32,7 @@ class CheckMessages(threading.Thread):
         self.user_length = 0
         self.alive_users = []
         self.message_sender = message_sender
+        self.first_run = True
 
     def presence_update(self, conn, msg):
         """
@@ -113,6 +114,9 @@ class CheckMessages(threading.Thread):
                     for user in self.alive_users:
                         if roster.getName(user) != None:
                             self.message_sender.send_nowait("#:#friendupdate#:#%s" % roster.getName(user))
+                    for user in roster.getItems():
+                        if ((roster.getName(user) != None) and (roster.getName(user) not in self.alive_users)):
+                            self.message_sender.send_nowait("#:#friendupdateoff#:#%s" % roster.getName(user))
                 self.user_length = len(self.alive_users)
             except:
                 self.message_sender.send_nowait(CONN_ERROR)

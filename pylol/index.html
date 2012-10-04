@@ -139,7 +139,7 @@
             }
             activeFriend = friend;
             var elements = new Array();
-            elements = getElementsByClassName('friendentry');
+            elements = getElementsByClassName('friendentry').concat(getElementsByClassName('offlineentry'));
             for(i in elements) {
                 elements[i].style.backgroundColor = '#eee';
             }
@@ -170,8 +170,13 @@
             friendBox.innerHTML += "<div class='friendentry' id='"+log+"' onclick='setActiveFriend(\""+log+"\");'>" + log + friend_status + '<br>' + friend_game + '</div>';
         }
 
+        function updateOffline(friend) {
+            offlineBox.innerHTML += "<div class='offlineentry' id='"+friend+"' onclick='setActiveFriend(\""+friend+"\");'>" + friend + '<br>Offline</div>';
+        }
+
         function clearFriends() {
           friendBox.innerHTML = '';
+          offlineBox.innerHTML = '';
         }
 
         function send() {
@@ -280,6 +285,9 @@
             if (event.data.indexOf("#:#friendupdate#:#") != -1) {
                 updateFriends(event.data.slice(18));
             }
+            if (event.data.indexOf("#:#friendupdateoff#:#") != -1) {
+                updateOffline(event.data.slice(21));
+            }
           };
           socket.onerror = function () {
             addToLog('Error');
@@ -307,6 +315,7 @@
 
           logBox = document.getElementById('log');
           friendBox = document.getElementById('friends');
+          offlineBox = document.getElementById('offlinefriends');
           friendRequestBox = document.getElementById('friendrequests');
           gameBox = document.getElementById('gameinvites');
           messageBox = document.getElementById('message');
@@ -362,7 +371,12 @@
             <div id="friend_headerouter">
                 <div id="friend_header">Friends List</div>
             </div>
-            <div id="friends"></div>
+            <div id="friendbox">
+                <div class="friendboxheader">Online</div>
+                <div id="friends"></div>
+                <div class="friendboxheader">Offline</div>
+                <div id="offlinefriends"></div>
+            </div>
         </div>
     </div>
     <div class="row">
