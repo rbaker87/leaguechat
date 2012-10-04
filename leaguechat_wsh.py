@@ -77,7 +77,10 @@ class CheckMessages(threading.Thread):
                         self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'Spectating %s' % game_name))
                     else:
                         self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
-
+        elif str(msg.getType()) == 'unsubscribe':
+            self.conn.send(xmpp.Presence(to=msg.getFrom(), frm=msg.getTo(), typ='unsubscribe'))
+        elif str(msg.getType()) == 'subscribe':
+            pass #Can't handle subscriptions without access to JID names
         else:
             self.alive_users.remove(str(msg.getFrom()))
 
