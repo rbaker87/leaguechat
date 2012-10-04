@@ -5,6 +5,22 @@ import threading
 from mod_pywebsocket import msgutil
 from messages_en import *   #Eventually support other localizations
 
+STATUS_MSG = "<body>\
+    <profileIcon>0</profileIcon>\
+    <level>1</level>\
+    <wins>0</wins>\
+    <leaves>0</leaves>\
+    <odinWins>0</odinWins>\
+    <odinLeaves>0</odinLeaves>\
+    <queueType>RANKED_SOLO_5x5</queueType>\
+    <rankedWins>0</rankedWins>\
+    <rankedLosses>0</rankedLosses>\
+    <rankedRating>0</rankedRating>\
+    <tier>BRONZE</tier>\
+    <gameStatus>outOfGame</gameStatus>\
+    <statusMsg>PyLoL</statusMsg>\
+    </body>"
+
 class CheckMessages(threading.Thread):
     """
     Constantly check for network data in a separate thread.
@@ -30,35 +46,36 @@ class CheckMessages(threading.Thread):
             for user in self.alive_users:
                 if str(user) == str(msg.getFrom()):
                     received_from = roster.getName(user)
-            status_msg = str(msg.getStatus())
-            endpoint = status_msg.find("</statusMsg>")
-            if endpoint != -1:
-                startpoint = status_msg.find("<statusMsg>") + 11
-                self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
-            else:
-                self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), ''))
-            endpoint = status_msg.find("</gameStatus>")
-            if endpoint != -1:
-                startpoint = status_msg.find("<gameStatus>") + 12
-                if status_msg[startpoint:endpoint] == 'inGame':
-                    self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'In Game'))
-                elif status_msg[startpoint:endpoint] == 'inQueue':
-                    self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'In Queue'))
-                elif status_msg[startpoint:endpoint] == 'outOfGame':
-                    self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'Online'))
-                elif status_msg[startpoint:endpoint] == 'spectating':
-                    endpoint = status_msg.find("</dropInSpectateGameId>")
-                    if endpoint != -1:
-                        startpoint = status_msg.find("<dropInSpectateGameId>") + 22
-                        if 'featured_game' in status_msg[startpoint:endpoint]:
-                            game_name = 'Featured Game'
-                        else:
-                            game_name = status_msg[startpoint:endpoint]
-                    else:
-                        game_name = ''
-                    self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'Spectating %s' % game_name))
+            if received_from != None:
+                status_msg = str(msg.getStatus())
+                endpoint = status_msg.find("</statusMsg>")
+                if endpoint != -1:
+                    startpoint = status_msg.find("<statusMsg>") + 11
+                    self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
                 else:
-                    self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
+                    self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), ''))
+                endpoint = status_msg.find("</gameStatus>")
+                if endpoint != -1:
+                    startpoint = status_msg.find("<gameStatus>") + 12
+                    if status_msg[startpoint:endpoint] == 'inGame':
+                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'In Game'))
+                    elif status_msg[startpoint:endpoint] == 'inQueue':
+                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'In Queue'))
+                    elif status_msg[startpoint:endpoint] == 'outOfGame':
+                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'Online'))
+                    elif status_msg[startpoint:endpoint] == 'spectating':
+                        endpoint = status_msg.find("</dropInSpectateGameId>")
+                        if endpoint != -1:
+                            startpoint = status_msg.find("<dropInSpectateGameId>") + 22
+                            if 'featured_game' in status_msg[startpoint:endpoint]:
+                                game_name = 'Featured Game'
+                            else:
+                                game_name = status_msg[startpoint:endpoint]
+                        else:
+                            game_name = ''
+                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'Spectating %s' % game_name))
+                    else:
+                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
 
         else:
             self.alive_users.remove(str(msg.getFrom()))
@@ -143,6 +160,9 @@ def web_socket_transfer_data(request):
             return
         if client.isConnected():
             client.sendInitPresence(requestRoster=1)
+            pres = xmpp.Presence(typ='available',show='chat',status='available')
+            pres.setStatus(STATUS_MSG)
+            client.send(pres)
 
             message_sender = msgutil.MessageSender(request)
 
