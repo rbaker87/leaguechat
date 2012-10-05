@@ -9,7 +9,10 @@ Usage (terminal client):
 
 Usage (server):
 
-    Move localizations to your mod_pywebsocket install directory. Move leaguechat_wsh.py to your websocket handlers location. Restart apache.
+    Move localizations to your mod_pywebsocket install directory.
+    Move leaguechat_wsh.py to your websocket handlers location.
+    Set reqtimeout.conf under your Apache mods-enabled directory to accept a minimum data rate of 1/Byte per second and wait more than 10 seconds between pulses. The client will send the message "Keep alive" once every 10 seconds on top of all data being transfered regularly.
+    Restart Apache.
 
 Requirements:
 
