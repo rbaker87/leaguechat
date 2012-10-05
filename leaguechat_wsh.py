@@ -118,7 +118,7 @@ class CheckMessages(threading.Thread):
                         if roster.getName(user) != None:
                             self.message_sender.send_nowait("#:#friendupdate#:#%s" % roster.getName(user))
                     for user in roster.getItems():
-                        if ((roster.getName(user) != None) and (roster.getName(user) not in self.alive_users)):
+                        if ((roster.getName(user) != None) and ((str(user)+'/xiff') not in self.alive_users)):
                             self.message_sender.send_nowait("#:#friendupdateoff#:#%s" % roster.getName(user))
                 self.user_length = len(self.alive_users)
             except:
