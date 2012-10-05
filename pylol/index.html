@@ -37,6 +37,7 @@
         var friendStatus = new Object();
         var friendGame = new Object();
         var showTimeStamps = new Boolean(true);
+        var isconnected = new Boolean(false);
 
         function sanitizeMsg(msg) {
             msg = msg.replace(/</g, "&lt;");
@@ -195,116 +196,127 @@
         }
 
         function connect() {
-          if ('WebSocket' in window) {
-            socket = new WebSocket(addressWs);
-          } else if ('MozWebSocket' in window) {
-            socket = new MozWebSocket(addressWs);
-          } else {
-            return;
-          }
+          if (isconnected == false) {
+              if ('WebSocket' in window) {
+                socket = new WebSocket(addressWs);
+              } else if ('MozWebSocket' in window) {
+                socket = new MozWebSocket(addressWs);
+              } else {
+                return;
+              }
 
-          socket.onopen = function () {
-            document.getElementById('message').focus();
-            socket.binaryType = 'blob';
-            socket.send('username' + userBox.value);
-            socket.send('password' + passBox.value);
-            intervalID = window.setInterval(keepAlive, 10000);
-          };
-          socket.onmessage = function (event) {
-            if (event.data.indexOf("#:#clearfriends#:#") != -1) {
+              socket.onopen = function () {
+                document.getElementById('logButton').style.background = "url('/media/logout.png') no-repeat top left";
+                isconnected = true;
+                document.getElementById('message').focus();
+                socket.binaryType = 'blob';
+                socket.send('username' + userBox.value);
+                socket.send('password' + passBox.value);
+                intervalID = window.setInterval(keepAlive, 10000);
+              };
+              socket.onmessage = function (event) {
+                if (event.data.indexOf("#:#clearfriends#:#") != -1) {
+                    clearFriends();
+                }
+                if (event.data.indexOf("#:#error#:#") != -1) {
+                    addToLog(event.data.slice(11));
+                }
+                if (event.data.indexOf("#:#warning#:#") != -1) {
+                    addToLog(event.data.slice(13));
+                }
+                if (event.data.indexOf("#:#message#:#") != -1) {
+                    if (activeFriend == null) {
+                        setActiveFriend(event.data.slice(13,event.data.indexOf(':', 13)))
+                    }
+                    friend = event.data.slice(13,event.data.indexOf(':', 13));
+                    if (document.getElementById(friend+'_chat') == null) {
+                        document.getElementById('friendholder').innerHTML += "<div id='"+friend+"_chat' class='chatwindow'></div>"; 
+                        document.getElementById(friend+'_chat').style.display = 'none';
+                    }
+
+                    addToChat('<b>'+event.data.slice(13, event.data.indexOf(':', 13))+'</b>'+sanitizeMsg(event.data.slice(event.data.indexOf(':', 13))), friend);
+
+                    playSound('./media/pm_receive.mp3');
+                    if (activeFriend != friend) {
+                        colorFade(friend, 'background', 'eeeeee', '00ccee', 25, 30);
+                    }
+                    if (windowFocused == false) {
+                        newMessages += 1;
+                        document.title = pageTitle + ' (' + newMessages + ')';
+                    }
+                }
+                if (event.data.indexOf("#:#statusupdate#:#") != -1) {
+                    friend = event.data.slice(18,event.data.indexOf(':', 18));
+                    oldStatus = '';
+                    if (friendStatus[friend] != undefined) {
+                        oldStatus = friendStatus[friend];
+                    }
+                    friendStatus[friend] = event.data.slice(event.data.indexOf(':', 18)+1);
+                    if (oldStatus != friendStatus[friend]) {
+                        addToLog(friend + " set status to '" + sanitizeMsg(friendStatus[friend]) + "'");
+                    }
+                    if (friendStatus[friend].length != 0){
+                        document.getElementById(friend).innerHTML = friend + " : " + friendStatus[friend];
+                    }
+                    else {
+                        document.getElementById(friend).innerHTML = friend;
+                    }
+                }
+                if (event.data.indexOf("#:#gameupdate#:#") != -1) {
+                    friend = event.data.slice(16,event.data.indexOf(':', 16));
+                    oldGame = '';
+                    if (friendGame[friend] != undefined) {
+                        oldGame = friendGame[friend];
+                    }
+                    friendGame[friend] = event.data.slice(event.data.indexOf(':', 16)+1);
+                    if (oldGame != friendGame[friend]) {
+                        addToLog(friend + " is now " + sanitizeMsg(friendGame[friend]));
+                    }
+                    if (friendStatus[friend].length != 0){
+                        document.getElementById(friend).innerHTML = friend + " : " + friendStatus[friend] + "<br>" + friendGame[friend];
+                    }
+                    else {
+                        document.getElementById(friend).innerHTML = friend + "<br>" + friendGame[friend];
+                    }
+                }
+                if (event.data.indexOf("#:#gameinvite#:#") != -1) {
+                    friend = event.data.slice(16,event.data.indexOf(':', 16));
+                    invite_label = event.data.slice(event.data.indexOf(':', 18)+1);
+                    addToGameLog(friend + " : " + invite_label);
+                    playSound('./media/buddy_invite.mp3');
+                    socket.send("#:#outmessage#:# #:#" + friend + "#:# " + invite_message);
+                }
+                if (event.data.indexOf("#:#friendupdate#:#") != -1) {
+                    updateFriends(event.data.slice(18));
+                }
+                if (event.data.indexOf("#:#friendupdateoff#:#") != -1) {
+                    updateOffline(event.data.slice(21));
+                }
+              };
+              socket.onerror = function () {
+                document.getElementById('logButton').style.background = "url('/media/login.png') no-repeat top left";
+                document.getElementById('username').focus();
+                isconnected = false;
+                addToLog('Error');
+              };
+              socket.onclose = function (event) {
+                document.getElementById('logButton').style.background = "url('/media/login.png') no-repeat top left";
+                document.getElementById('username').focus();
+                isconnected = false;
+                addToLog('Session closed...');
+                socket.send("Kill session");
                 clearFriends();
+              };
             }
-            if (event.data.indexOf("#:#error#:#") != -1) {
-                addToLog(event.data.slice(11));
+            else {
+                document.getElementById('logButton').style.background = "url('/media/login.png') no-repeat top left";
+                isconnected = false;
+                socket.send("Kill session");
+                socket.close();
             }
-            if (event.data.indexOf("#:#warning#:#") != -1) {
-                addToLog(event.data.slice(13));
-            }
-            if (event.data.indexOf("#:#message#:#") != -1) {
-                if (activeFriend == null) {
-                    setActiveFriend(event.data.slice(13,event.data.indexOf(':', 13)))
-                }
-                friend = event.data.slice(13,event.data.indexOf(':', 13));
-                if (document.getElementById(friend+'_chat') == null) {
-                    document.getElementById('friendholder').innerHTML += "<div id='"+friend+"_chat' class='chatwindow'></div>"; 
-                    document.getElementById(friend+'_chat').style.display = 'none';
-                }
-
-                addToChat('<b>'+event.data.slice(13, event.data.indexOf(':', 13))+'</b>'+sanitizeMsg(event.data.slice(event.data.indexOf(':', 13))), friend);
-
-                playSound('./media/pm_receive.mp3');
-                if (activeFriend != friend) {
-                    colorFade(friend, 'background', 'eeeeee', '00ccee', 25, 30);
-                }
-                if (windowFocused == false) {
-                    newMessages += 1;
-                    document.title = pageTitle + ' (' + newMessages + ')';
-                }
-            }
-            if (event.data.indexOf("#:#statusupdate#:#") != -1) {
-                friend = event.data.slice(18,event.data.indexOf(':', 18));
-                oldStatus = '';
-                if (friendStatus[friend] != undefined) {
-                    oldStatus = friendStatus[friend];
-                }
-                friendStatus[friend] = event.data.slice(event.data.indexOf(':', 18)+1);
-                if (oldStatus != friendStatus[friend]) {
-                    addToLog(friend + " set status to '" + sanitizeMsg(friendStatus[friend]) + "'");
-                }
-                if (friendStatus[friend].length != 0){
-                    document.getElementById(friend).innerHTML = friend + " : " + friendStatus[friend];
-                }
-                else {
-                    document.getElementById(friend).innerHTML = friend;
-                }
-            }
-            if (event.data.indexOf("#:#gameupdate#:#") != -1) {
-                friend = event.data.slice(16,event.data.indexOf(':', 16));
-                oldGame = '';
-                if (friendGame[friend] != undefined) {
-                    oldGame = friendGame[friend];
-                }
-                friendGame[friend] = event.data.slice(event.data.indexOf(':', 16)+1);
-                if (oldGame != friendGame[friend]) {
-                    addToLog(friend + " is now " + sanitizeMsg(friendGame[friend]));
-                }
-                if (friendStatus[friend].length != 0){
-                    document.getElementById(friend).innerHTML = friend + " : " + friendStatus[friend] + "<br>" + friendGame[friend];
-                }
-                else {
-                    document.getElementById(friend).innerHTML = friend + "<br>" + friendGame[friend];
-                }
-            }
-            if (event.data.indexOf("#:#gameinvite#:#") != -1) {
-                friend = event.data.slice(16,event.data.indexOf(':', 16));
-                invite_label = event.data.slice(event.data.indexOf(':', 18)+1);
-                addToGameLog(friend + " : " + invite_label);
-                playSound('./media/buddy_invite.mp3');
-                socket.send("#:#outmessage#:# #:#" + friend + "#:# " + invite_message);
-            }
-            if (event.data.indexOf("#:#friendupdate#:#") != -1) {
-                updateFriends(event.data.slice(18));
-            }
-            if (event.data.indexOf("#:#friendupdateoff#:#") != -1) {
-                updateOffline(event.data.slice(21));
-            }
-          };
-          socket.onerror = function () {
-            addToLog('Error');
-          };
-          socket.onclose = function (event) {
-            addToLog('Session closed...');
-            socket.send("Kill session");
-            clearFriends();
-          };
         }
 
         window.onbeforeunload = function () {
-            socket.send("Kill session");
-            socket.close();
-        }
-
-        function logout() {
             socket.send("Kill session");
             socket.close();
         }
@@ -321,6 +333,7 @@
           messageBox = document.getElementById('message');
           userBox = document.getElementById('username');
           passBox = document.getElementById('password');
+          document.getElementById('username').focus();
 
           addressWs = defaultAddress;
 
@@ -341,16 +354,13 @@
         <img src="/media/left.png" style="float: left;" />
         <img src="/media/right.png" style="float: right;" />
         <div clas="row" style="padding: 14px; position: relative;">
-                <div class="align-right">
-                    <form class="inlineform" action="#" onsubmit="connect(); return false;">
-                        Username: <input type="text" id="username" class="idinput" autocapitalize="off" autocomplete="off" autocorrect="off">
-                        Password: <input type="password" id="password" class="idinput" autocapitalize="off" autocomplete="off" autocorrect="off">
-                        <input type="submit" class="loginButton" value="">
-                    </form>
-                    <form class="inlineform" action="#" onsubmit="logout(); return false;">
-                        <input type="submit" class="logoutButton" value="">
-                    </form>
-                </div>
+            <div class="align-right">
+                <form id="loginForm" class="inlineform" action="#" onsubmit="connect(); return false;">
+                    Username: <input type="text" id="username" class="idinput" autocapitalize="off" autocomplete="off" autocorrect="off">
+                    Password: <input type="password" id="password" class="idinput" autocapitalize="off" autocomplete="off" autocorrect="off">
+                    <input type="submit" id="logButton" class="loginButton" value="">
+                </form>
+            </div>
         </div>
     </div>
     <br>

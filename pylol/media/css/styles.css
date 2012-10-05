@@ -15,13 +15,6 @@
         height: 20px;
     }
 
-    .logoutButton {
-        background:url('/media/logout.png') no-repeat top left;
-        border: 1px solid #666;
-        width: 66px;
-        height: 20px;
-    }
-
     .sendButton {
         background:url('/media/send.png') no-repeat top left;
         border: 1px solid #666;
