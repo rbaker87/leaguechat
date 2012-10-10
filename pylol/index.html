@@ -184,6 +184,9 @@
           messageBox = document.getElementById('message');
           if (!socket) {
             addToLog('Not connected');
+            isconnected = false;
+            document.getElementById('logButton').style.background = "url('/media/login.png') no-repeat top left";
+            clearFriends();
             return;
           }
 
