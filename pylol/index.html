@@ -292,6 +292,10 @@
                 if (event.data.indexOf("#:#friendupdateoff#:#") != -1) {
                     updateOffline(event.data.slice(21));
                 }
+                if (event.data.indexOf("#:#removefriend#:#") != -1) {
+                    friend = event.data.slice(18);
+                    addToLog(friend + " is now Offline");
+                }
               };
               socket.onerror = function () {
                 document.getElementById('logButton').style.background = "url('/media/login.png') no-repeat top left";

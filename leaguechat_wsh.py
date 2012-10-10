@@ -34,6 +34,14 @@ class CheckMessages(threading.Thread):
         self.message_sender = message_sender
         self.first_run = True
 
+    def get_name(self, msg_from):
+        roster = self.conn.getRoster()
+        received_from = 'Blank'
+        for user in self.alive_users:
+            if str(user) == str(msg_from):
+                received_from = roster.getName(user)
+        return str(received_from)
+
     def presence_update(self, conn, msg):
         """
         Receive and process jabber presence updates.
@@ -42,28 +50,24 @@ class CheckMessages(threading.Thread):
         if str(msg.getType()) != "unavailable":
             if str(msg.getFrom()) not in self.alive_users:
                 self.alive_users.append(str(msg.getFrom()))
-            roster = self.conn.getRoster()
-            received_from = 'Blank'
-            for user in self.alive_users:
-                if str(user) == str(msg.getFrom()):
-                    received_from = roster.getName(user)
-            if received_from != None:
+            received_from = self.get_name(msg.getFrom())
+            if received_from != "None":
                 status_msg = str(msg.getStatus())
                 endpoint = status_msg.find("</statusMsg>")
                 if endpoint != -1:
                     startpoint = status_msg.find("<statusMsg>") + 11
-                    self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
+                    self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (received_from, status_msg[startpoint:endpoint]))
                 else:
-                    self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (str(received_from), ''))
+                    self.message_sender.send_nowait("#:#statusupdate#:#%s:%s" % (received_from, ''))
                 endpoint = status_msg.find("</gameStatus>")
                 if endpoint != -1:
                     startpoint = status_msg.find("<gameStatus>") + 12
                     if status_msg[startpoint:endpoint] == 'inGame':
-                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'In Game'))
+                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (received_from, 'In Game'))
                     elif status_msg[startpoint:endpoint] == 'inQueue':
-                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'In Queue'))
+                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (received_from, 'In Queue'))
                     elif status_msg[startpoint:endpoint] == 'outOfGame':
-                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'Online'))
+                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (received_from, 'Online'))
                     elif status_msg[startpoint:endpoint] == 'spectating':
                         endpoint = status_msg.find("</dropInSpectateGameId>")
                         if endpoint != -1:
@@ -74,14 +78,16 @@ class CheckMessages(threading.Thread):
                                 game_name = status_msg[startpoint:endpoint]
                         else:
                             game_name = ''
-                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), 'Spectating %s' % game_name))
+                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (received_from, 'Spectating %s' % game_name))
                     else:
-                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
+                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (received_from, status_msg[startpoint:endpoint]))
         elif str(msg.getType()) == 'unsubscribe':
             self.conn.send(xmpp.Presence(to=msg.getFrom(), frm=msg.getTo(), typ='unsubscribe'))
         elif str(msg.getType()) == 'subscribe':
             pass #Can't handle subscriptions without access to JID names
-        else:
+        elif str(msg.getType()) == "unavailable":
+            received_from = self.get_name(msg.getFrom())
+            self.message_sender.send_nowait("#:#removefriend#:#%s" % received_from)
             self.alive_users.remove(str(msg.getFrom()))
 
     def message_update(self, conn, msg):
@@ -89,18 +95,14 @@ class CheckMessages(threading.Thread):
         Receive and process jabber messages.
         """
 
-        roster = self.conn.getRoster()
-        received_from = 'Blank'
-        for user in self.alive_users:
-            if str(user) == str(msg.getFrom()):
-                received_from = roster.getName(user)
+        received_from = self.get_name(msg.getFrom())
         status_msg = str(msg.getBody())
         endpoint = status_msg.find("</gameType>")
         if ((endpoint != -1) and (status_msg.find('<inviteId>') != -1)):    #Redundant on the offchance someone uses one of these tags in a real message
             startpoint = status_msg.find("<gameType>") + 10
-            self.message_sender.send_nowait("#:#gameinvite#:#%s:%s" % (str(received_from), status_msg[startpoint:endpoint]))
+            self.message_sender.send_nowait("#:#gameinvite#:#%s:%s" % (received_from, status_msg[startpoint:endpoint]))
         else:
-            self.message_sender.send_nowait("#:#message#:#%s: %s" % (str(received_from), str(msg.getBody())))
+            self.message_sender.send_nowait("#:#message#:#%s: %s" % (received_from, str(msg.getBody())))
 
     def step_on(self):
         """
