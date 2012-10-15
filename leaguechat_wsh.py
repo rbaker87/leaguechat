@@ -68,6 +68,10 @@ class CheckMessages(threading.Thread):
                         self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (received_from, 'In Queue'))
                     elif status_msg[startpoint:endpoint] == 'outOfGame':
                         self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (received_from, 'Online'))
+                    elif status_msg[startpoint:endpoint] == 'hostingPracticeGame':
+                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (received_from, 'Hosting a Practice Game'))
+                    elif status_msg[startpoint:endpoint] == 'championSelect':
+                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (received_from, 'In Champion Select'))
                     elif status_msg[startpoint:endpoint] == 'spectating':
                         endpoint = status_msg.find("</dropInSpectateGameId>")
                         if endpoint != -1:
