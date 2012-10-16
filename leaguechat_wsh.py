@@ -2,9 +2,18 @@
 
 import xmpp
 import threading
+import time
+from datetime import datetime
 from mod_pywebsocket import msgutil
 from messages_en import *   #Eventually support other localizations
 
+#Time between non-blocking message checking
+RECEIVE_BUFFER = 0.5
+
+#Maximum allowed time between keepalive requests
+WEBSOCKET_TIMEOUT = 60
+
+#User profile settings
 STATUS_MSG = "<body>\
     <profileIcon>0</profileIcon>\
     <level>1</level>\
@@ -172,12 +181,14 @@ def web_socket_transfer_data(request):
             request.ws_stream.send_message(AUTH_ERROR, binary=False)
             return
         if client.isConnected():
+            keepalive = datetime.now()
             client.sendInitPresence(requestRoster=1)
             pres = xmpp.Presence(show='chat')
             pres.setStatus(STATUS_MSG)
             client.send(pres)
 
             message_sender = msgutil.MessageSender(request)
+            message_receiver = msgutil.MessageReceiver(request)
 
             incoming_thread = CheckMessages(client, message_sender)
             incoming_thread.setDaemon(True)
@@ -189,42 +200,58 @@ def web_socket_transfer_data(request):
             request.ws_stream.send_message(CONN_SUCCESS, binary=False)
             to_jid = None #jid for the user receiving the message
             while True:
-                line = request.ws_stream.receive_message()
+                line = message_receiver.receive_nowait()
                 if client.isConnected():    #Check connection on each loop
-                    out_message = str(line)
-                    if ((out_message != "Keep alive") and (out_message != "Kill session")):
-                        split_out = out_message.split()
-                        roster = client.getRoster()
-                        try:
-                            if split_out[0] == '#:#outmessage#:#':
-                                to_jid = split_out[1][3:-3]
-                                out_message = ' '.join(split_out[2:])
-                        except IndexError:
-                            to_jid = None
-                            out_message = ''
+                    if line != None:
+                        out_message = str(line)
+                        if ((out_message != "Keep alive") and (out_message != "Kill session")):
+                            split_out = out_message.split()
+                            roster = client.getRoster()
+                            try:
+                                if split_out[0] == '#:#outmessage#:#':
+                                    to_jid = split_out[1][3:-3]
+                                    out_message = ' '.join(split_out[2:])
+                            except IndexError:
+                                to_jid = None
+                                out_message = ''
 
-                        if to_jid:
-                            for user in incoming_thread.alive_users:
-                                if str(roster.getName(user)).lower() == str(to_jid).lower():
-                                    to_jid = user
-                                    valid_jid = True
-                                    break
+                            if to_jid:
+                                for user in incoming_thread.alive_users:
+                                    if str(roster.getName(user)).lower() == str(to_jid).lower():
+                                        to_jid = user
+                                        valid_jid = True
+                                        break
+                                    else:
+                                        valid_jid = False
+                                if valid_jid:
+                                    message = xmpp.Message(to_jid, out_message)
+                                    message.setAttr('type', 'chat')
+                                    client.send(message)
                                 else:
-                                    valid_jid = False
-                            if valid_jid:
-                                message = xmpp.Message(to_jid, out_message)
-                                message.setAttr('type', 'chat')
-                                client.send(message)
-                            else:
-                                request.ws_stream.send_message(USER_WARNING, binary=False)
-                    if (out_message == "Kill session"):
+                                    request.ws_stream.send_message(USER_WARNING, binary=False)
+                        if (out_message == "Kill session"):
+                            client.disconnect()
+                            return
+                    if (datetime.now() - keepalive).seconds > WEBSOCKET_TIMEOUT:
                         client.disconnect()
                         return
                 else:
-                    request.ws_stream.send_message(CONN_ERROR, binary=False)
+                    try:
+                        request.ws_stream.send_message(CONN_ERROR, binary=False)
+                    except:     #Don't crap out and leave a zombie process if the xmpp connection drops along with the websocket session
+                        pass
                     return
+
+                #Execute keep alive request regardless of the status of the xmpp connection
+                if (str(line) == "Keep alive"):
+                    keepalive = datetime.now()
+                #Throttle message receiving otherwise the non-blocking state of the loop will cause it to execute as fast as possible
+                time.sleep(RECEIVE_BUFFER)
         else:
-            request.ws_stream.send_message(CONN_ERROR, binary=False)
+            try:
+                request.ws_stream.send_message(CONN_ERROR, binary=False)
+            except:     #Don't crap out and leave a zombie process if the xmpp connection drops along with the websocket session
+                pass
             return
     except IOError: #Something was causing apache to overload... Meh?
         return
