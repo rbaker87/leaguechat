@@ -72,7 +72,13 @@ class CheckMessages(threading.Thread):
                 if endpoint != -1:
                     startpoint = status_msg.find("<gameStatus>") + 12
                     if status_msg[startpoint:endpoint] == 'inGame':
-                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (received_from, 'In Game'))
+                        endpoint = status_msg.find("</skinname>")
+                        if endpoint != -1:
+                            startpoint = status_msg.find("<skinname>") + 10
+                            champion_name = status_msg[startpoint:endpoint]
+                        else:
+                            champion_name = 'Unknown'
+                        self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (received_from, 'In Game as %s' % champion_name))
                     elif status_msg[startpoint:endpoint] == 'inQueue':
                         self.message_sender.send_nowait("#:#gameupdate#:#%s:%s" % (received_from, 'In Queue'))
                     elif status_msg[startpoint:endpoint] == 'outOfGame':
