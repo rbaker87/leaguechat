@@ -14,9 +14,12 @@ var activeFriend = null;
 var intervalID = null;
 var newMessages = 0;
 var pageTitle = 'PyLoL';
+var prev_overlay = '';
+var in_overlay = new Boolean(false);
 var windowFocused = new Boolean(true);
 var friendStatus = new Object();
 var friendGame = new Object();
+var friendTime = new Object();
 var showTimeStamps = new Boolean(true);
 var isconnected = new Boolean(false);
 
@@ -36,6 +39,12 @@ function urlify(text) {
             return '<a href="' + url + '" target="_blank">' + url + '</a>';
         }
     })
+}
+
+function setGameTime(friendtime) {
+    epoch_time = new Date() / 1000;
+    friendtime = (epoch_time - friendtime) / 60;
+    return friendtime;
 }
 
 function getTimeStamp() {
@@ -149,7 +158,24 @@ function updateFriends(log) {
         friend_game = '';
     }
 
-    friendBox.innerHTML += "<div class='friendentry' id='"+log+"' onclick='setActiveFriend(\""+log+"\");'>" + log + friend_status + '<br>' + friend_game + '</div>';
+    friendBox.innerHTML += "<div class='friendentry' id='"+log+"' onmouseover='displayOverlay(\""+log+"\");' onmouseout='removeOverlay(\""+log+"\");' onclick='setActiveFriend(\""+log+"\");'>" + log + friend_status + '<br>' + friend_game + '</div>';
+}
+
+function displayOverlay(friend) {
+    if (in_overlay == false) {
+        prev_overlay = document.getElementById(friend).innerHTML;
+    }
+    if (friendGame[friend].indexOf("In Game as") != -1){
+        document.getElementById(friend).innerHTML = "In game for " + friendTime[friend] + " minutes<br><br>";
+    }
+    in_overlay = true;
+}
+
+function removeOverlay(friend) {
+    if (in_overlay == true) {
+        document.getElementById(friend).innerHTML = prev_overlay;
+    }
+    in_overlay = false;
 }
 
 function updateOffline(friend) {
@@ -262,6 +288,15 @@ function connect() {
             else {
                 document.getElementById(friend).innerHTML = friend + "<br>" + friendGame[friend];
             }
+        }
+        if (event.data.indexOf("#:#gametimeupdate#:#") != -1) {
+            friend = event.data.slice(20,event.data.indexOf(':', 20));
+            oldTime = '';
+            if (friendTime[friend] != undefined) {
+                oldTime = friendTime[friend];
+            }
+            friendTime[friend] = event.data.slice(event.data.indexOf(':', 20)+1);
+            friendTime[friend] = setGameTime(parseInt(friendTime[friend]));
         }
         if (event.data.indexOf("#:#gameinvite#:#") != -1) {
             friend = event.data.slice(16,event.data.indexOf(':', 16));
