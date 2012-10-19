@@ -111,14 +111,14 @@ function addToGameLog(log) {
 }
 
 function addToChat(log, friend) {
-    chatBox = document.getElementById(friend+'_chat');
+    tempChatBox = document.getElementById(friend+'_chat');
     if (showTimeStamps == true) {
-        chatBox.innerHTML += "<"+getTimeStamp()+"> " + urlify(log) + '<br>';
+        tempChatBox.innerHTML += "<"+getTimeStamp()+"> " + urlify(log) + '<br>';
     }
     else {
-        chatBox.innerHTML += log + '<br>';
+        tempChatBox.innerHTML += log + '<br>';
     }
-    chatBox.scrollTop = (chatBox.scrollHeight - chatBox.offsetHeight);
+    tempChatBox.scrollTop = (tempChatBox.scrollHeight - tempChatBox.offsetHeight);
 }
 
 function setActiveFriend(friend) {
@@ -141,6 +141,7 @@ function setActiveFriend(friend) {
     }
     document.getElementById(friend+'_chat').style.display = 'block';
     chatBox = document.getElementById(friend+'_chat');
+    chatBox.scrollTop = (chatBox.scrollHeight - chatBox.offsetHeight);
     document.getElementById('message').focus();
 }
 
