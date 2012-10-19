@@ -44,7 +44,7 @@ function urlify(text) {
 function setGameTime(friendtime) {
     epoch_time = new Date() / 1000;
     friendtime = (epoch_time - friendtime) / 60;
-    return friendtime;
+    return Math.floor(friendtime);
 }
 
 function getTimeStamp() {
@@ -166,7 +166,7 @@ function displayOverlay(friend) {
         prev_overlay = document.getElementById(friend).innerHTML;
     }
     if (friendGame[friend].indexOf("In Game as") != -1){
-        document.getElementById(friend).innerHTML = "In game for " + friendTime[friend] + " minutes<br><br>";
+        document.getElementById(friend).innerHTML = "In game for " + setGameTime(friendTime[friend]) + " minutes<br><br>";
     }
     in_overlay = true;
 }
@@ -291,12 +291,8 @@ function connect() {
         }
         if (event.data.indexOf("#:#gametimeupdate#:#") != -1) {
             friend = event.data.slice(20,event.data.indexOf(':', 20));
-            oldTime = '';
-            if (friendTime[friend] != undefined) {
-                oldTime = friendTime[friend];
-            }
             friendTime[friend] = event.data.slice(event.data.indexOf(':', 20)+1);
-            friendTime[friend] = setGameTime(parseInt(friendTime[friend]));
+            friendTime[friend] = parseInt(friendTime[friend]);
         }
         if (event.data.indexOf("#:#gameinvite#:#") != -1) {
             friend = event.data.slice(16,event.data.indexOf(':', 16));
