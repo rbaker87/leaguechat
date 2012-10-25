@@ -317,20 +317,22 @@ function connect() {
         document.getElementById('logButton').style.background = "url('/media/login.png') no-repeat top left";
         document.getElementById('username').focus();
         isconnected = false;
+        clearFriends();
         addToLog('Error');
       };
       socket.onclose = function (event) {
         document.getElementById('logButton').style.background = "url('/media/login.png') no-repeat top left";
         document.getElementById('username').focus();
         isconnected = false;
+        clearFriends();
         addToLog('Session closed...');
         socket.send("Kill session");
-        clearFriends();
       };
     }
     else {
         document.getElementById('logButton').style.background = "url('/media/login.png') no-repeat top left";
         isconnected = false;
+        clearFriends();
         socket.send("Kill session");
         socket.close();
     }
