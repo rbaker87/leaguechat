@@ -268,5 +268,5 @@ def web_socket_transfer_data(request):
             except:     #Don't crap out and leave a zombie process if the xmpp connection drops along with the websocket session
                 pass
             return
-    except IOError: #Something was causing apache to overload... Meh?
+    except: #Something was causing apache to overload... Meh?
         return
