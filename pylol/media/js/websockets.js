@@ -310,6 +310,7 @@ function connect() {
         }
         if (event.data.indexOf("#:#removefriend#:#") != -1) {
             friend = event.data.slice(18);
+            friendGame[friend] = "Offline";
             addToLog(friend + " is now Offline");
         }
       };
